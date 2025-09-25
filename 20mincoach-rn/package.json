@@ -45,5 +45,11 @@
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"
   },
+  "imports": {
+    "@/*": "./src/*",
+    "@components/*": "./components/*",
+    "@constants/*": "./constants/*",
+    "@hooks/*": "./hooks/*"
+  },
   "private": true
 }

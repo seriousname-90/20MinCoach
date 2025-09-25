@@ -4,20 +4,13 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      // Alias para la NUEVA estructura src/
-      "@/*": ["src/*"],
-      
-      // Alias para las carpetas EXISTENTES (importante mantener)
-      "@app/*": ["app/*"],
-      "@components/*": ["components/*"],
-      "@constants/*": ["constants/*"],
-      "@hooks/*": ["hooks/*"],
-      "@assets/*": ["assets/*"]
+      "@/*": ["./*"],
+      "~/*": ["./*"]
     }
   },
   "include": [
     "**/*.ts",
-    "**/*.tsx",
+    "**/*.tsx", 
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ]
