@@ -7,16 +7,20 @@
     "types": ["expo", "expo-router"],
     "paths": {
       "@/*": ["./*"],
+<<<<<<< HEAD
       "@app/*": ["./app/*"],
       "@components/*": ["./components/*"],
       "@constants/*": ["./constants/*"],
       "@hooks/*": ["./hooks/*"],
       "@assets/*": ["./assets/*"]
+=======
+      "~/*": ["./*"]
+>>>>>>> origin/main
     }
   },
   "include": [
     "**/*.ts",
-    "**/*.tsx",
+    "**/*.tsx", 
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ]
