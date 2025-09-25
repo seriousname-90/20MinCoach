@@ -3,16 +3,15 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
+    "moduleResolution": "bundler",
+    "types": ["expo", "expo-router"],
     "paths": {
-      // Alias para la NUEVA estructura src/
-      "@/*": ["src/*"],
-      
-      // Alias para las carpetas EXISTENTES (importante mantener)
-      "@app/*": ["app/*"],
-      "@components/*": ["components/*"],
-      "@constants/*": ["constants/*"],
-      "@hooks/*": ["hooks/*"],
-      "@assets/*": ["assets/*"]
+      "@/*": ["./*"],
+      "@app/*": ["./app/*"],
+      "@components/*": ["./components/*"],
+      "@constants/*": ["./constants/*"],
+      "@hooks/*": ["./hooks/*"],
+      "@assets/*": ["./assets/*"]
     }
   },
   "include": [
