@@ -1,21 +1,19 @@
-import { ScrollView, View, StyleSheet } from 'react-native';
-import { Button, Card, Text } from 'react-native-paper';
+import { ScrollView, View, StyleSheet, Button } from 'react-native';
+import { Card, Text } from 'react-native-paper';
 
 export default function HomeScreen() {
   return (
     <ScrollView style={styles.container}>
+      {/* PRUEBA REACT NATIVE PAPER */}
       <View style={styles.testContainer}>
         <Card>
           <Card.Content>
             <Text style={styles.title}>🧪 20minCoach</Text>
             <Text style={styles.body}>React Native Paper + React Navigation</Text>
             <Button 
-              mode="contained"  
-              onPress={() => alert('✅ ¡Funciona!')}
-              style={{ marginTop: 10 }}
-            >
-              Probar Integración
-            </Button>
+              title="Probar Integración"
+              onPress={() => alert('✅ ¡Funciona!')} 
+            />
           </Card.Content>
         </Card>
       </View>
@@ -50,4 +48,4 @@ const styles = StyleSheet.create({
   body: {
     fontSize: 16,
   },
-}); 
+});
