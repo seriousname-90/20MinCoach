@@ -1,7 +1,7 @@
 import { View, Text, Button } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '@/src/store';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { clearAuth } from '@/src/store/slices/auth';
 import { signOut } from '@/src/services/auth/supabaseAuth';
 
@@ -13,7 +13,7 @@ export default function PremiumDashboard() {
   const onLogout = async () => {
     await signOut();
     dispatch(clearAuth());
-    router.replace('/auth');
+    router.replace('/auth' as Href);
   };
 
   return (
@@ -22,13 +22,9 @@ export default function PremiumDashboard() {
       <Text>Hola: {email ?? '—'}</Text>
       <Text>Roles: {roles.join(', ') || '—'}</Text>
 
-      {/* Acción A */}
       <Button title="Start 20-min request" onPress={() => { /* TODO */ }} />
-
-      {/* Acción B (solo Premium) */}
       <Button title="View earnings" onPress={() => { /* TODO */ }} />
-
-      {/* Logout aquí */}
+      <Button title="Enable MFA (TOTP)" onPress={() => router.push('/auth/mfa-setup' as Href)} />
       <Button title="Log out" onPress={onLogout} />
     </View>
   );

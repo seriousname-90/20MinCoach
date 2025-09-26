@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Href } from 'expo-router';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { requestEmailOtp, verifyEmailOtp, getUser, getSession } from '@/src/services/auth/supabaseAuth';
 import { fetchAuthSnapshot } from '@/src/services/auth/session';
 import { setAuth } from '@/src/store/slices/auth';
 import type { RootState } from '@/src/store';
+import { listFactors } from '@/src/services/auth/mfa';
+
 
 export default function AuthScreen() {
   const router = useRouter();
@@ -50,10 +52,18 @@ export default function AuthScreen() {
       const snap = await fetchAuthSnapshot();
       dispatch(setAuth(snap));
 
-      // Redirección por rol
+      // (OPCIONAL IMPLEMENTADO) Si ya tiene TOTP, pedir verificación MFA primero
+      const factors = await listFactors();
+      if (factors.length > 0) {
+        Alert.alert('MFA', 'Debes verificar tu MFA (TOTP).');
+        router.replace('/auth/mfa-challenge' as Href);
+        return;
+      }
+
+      // Si no tiene TOTP, redirección por rol
       const roles = snap.roles || [];
-      if (roles.includes('PremiumUser')) router.replace('/dashboard/premium');
-      else router.replace('/dashboard/basic');
+      if (roles.includes('PremiumUser')) router.replace('/dashboard/premium' as Href);
+      else router.replace('/dashboard/basic' as Href);
 
       Alert.alert('OK', s ? 'Sesión activa' : 'No se pudo iniciar sesión');
     } catch (e: any) {
