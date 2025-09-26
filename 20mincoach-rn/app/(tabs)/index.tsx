@@ -1,51 +1,36 @@
-import { ScrollView, View, StyleSheet, Button } from 'react-native';
-import { Card, Text } from 'react-native-paper';
+import { Image } from 'expo-image';
+import { StyleSheet, View, Button } from 'react-native';
+import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { useRouter, type Href } from 'expo-router';
 
 export default function HomeScreen() {
-  return (
-    <ScrollView style={styles.container}>
-      {/* PRUEBA REACT NATIVE PAPER */}
-      <View style={styles.testContainer}>
-        <Card>
-          <Card.Content>
-            <Text style={styles.title}>🧪 20minCoach</Text>
-            <Text style={styles.body}>React Native Paper + React Navigation</Text>
-            <Button 
-              title="Probar Integración"
-              onPress={() => alert('✅ ¡Funciona!')} 
-            />
-          </Card.Content>
-        </Card>
-      </View>
+  const router = useRouter();
 
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>Bienvenido</Text>
-        <Text style={styles.body}>Esta es tu app 20minCoach funcionando con React Native Paper.</Text>
+  return (
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerImage={
+        <Image
+          source={require('@/assets/images/partial-react-logo.png')}
+          style={styles.reactLogo}
+        />
+      }
+    >
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText type="title">20minCoach</ThemedText>
+      </ThemedView>
+
+      <View style={styles.stepContainer}>
+        <Button title="Ir a Autenticación" onPress={() => router.push('/auth' as Href)} />
       </View>
-    </ScrollView>
+    </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  testContainer: {
-    marginBottom: 20,
-  },
-  section: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  body: {
-    fontSize: 16,
-  },
+  titleContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  stepContainer: { gap: 8, marginBottom: 8, paddingHorizontal: 16 },
+  reactLogo: { height: 178, width: 290, bottom: 0, left: 0, position: 'absolute' },
 });

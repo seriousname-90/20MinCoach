@@ -1,5 +1,6 @@
 {
   "expo": {
+    "owner": "gsleviatan",
     "name": "20mincoach-rn",
     "slug": "20mincoach-rn",
     "version": "1.0.0",
@@ -39,11 +40,16 @@
           }
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "SUPABASE_URL": "https://pyekuhbisegxyiotzsqh.supabase.co",
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5ZWt1aGJpc2VneHlpb3R6c3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4NDU0OTgsImV4cCI6MjA3NDQyMTQ5OH0.2OIkKDrpFh8d4lfh0tCC_9dsHORKScfx2LXO6gG91K4"
     }
   }
 }

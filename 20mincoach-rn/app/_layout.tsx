@@ -1,34 +1,32 @@
-// app/_layout.tsx - VERSIÓN CORREGIDA
-import { 
-  DarkTheme as NavDarkTheme, 
-  DefaultTheme as NavDefaultTheme, 
-  ThemeProvider 
-} from '@react-navigation/native';
-import { PaperProvider, adaptNavigationTheme } from 'react-native-paper';
-import { Stack } from 'expo-router'; 
-import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'react-native'
-import 'react-native-reanimated'; 
+import 'react-native-reanimated';
+import * as WebBrowser from 'expo-web-browser';
+WebBrowser.maybeCompleteAuthSession();
 
-// Usar alias diferentes para evitar conflicto
-const { LightTheme: NavLightTheme, DarkTheme: NavDarkThemeAdapted } = adaptNavigationTheme({
-  reactNavigationLight: NavDefaultTheme,
-  reactNavigationDark: NavDarkTheme,
-});
+import React from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { Stack } from 'expo-router';
+
+import { Provider } from 'react-redux';
+import { store } from '@/src/store';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? NavDarkThemeAdapted : NavLightTheme;
 
   return (
-    <PaperProvider theme={theme}>
-      <ThemeProvider value={theme}>
+    <Provider store={store}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          <Stack.Screen name="auth/index" options={{ title: 'Auth' }} />
+          <Stack.Screen name="dashboard/basic" options={{ title: 'Dashboard (Basic)' }} />
+          <Stack.Screen name="dashboard/premium" options={{ title: 'Dashboard (Premium)' }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
-    </PaperProvider>
+    </Provider>
   );
 }
