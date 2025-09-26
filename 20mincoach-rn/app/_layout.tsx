@@ -32,6 +32,8 @@ export default function RootLayout() {
             <Stack.Screen name="auth/index" options={{ title: 'Auth' }} />
             <Stack.Screen name="dashboard/basic" options={{ title: 'Dashboard (Basic)' }} />
             <Stack.Screen name="dashboard/premium" options={{ title: 'Dashboard (Premium)' }} />
+            <Stack.Screen name="auth/mfa-setup" options={{ title: 'Enable MFA (TOTP)' }} />
+            <Stack.Screen name="auth/mfa-challenge" options={{ title: 'Verify MFA' }} />
           </Stack>
           <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         </NavigationThemeProvider>
