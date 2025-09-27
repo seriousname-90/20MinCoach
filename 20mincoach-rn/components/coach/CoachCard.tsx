@@ -1,7 +1,7 @@
 // components/coach/CoachCard.tsx
 import { Card, Avatar, Text } from 'react-native-paper';
 import { View } from 'react-native';
-import { Rating } from './Rating';
+import { Rating } from '../ui/Rating';
 import { Coach } from '../../src/models/coach';
 
 interface CoachCardProps {

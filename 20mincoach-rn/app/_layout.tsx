@@ -26,6 +26,7 @@ export default function RootLayout() {
     <Provider store={store}>
       <PaperProvider theme={theme}>
         <NavigationThemeProvider value={theme}>
+          {/* Stack debe ser el componente principal de navegación */}
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
@@ -34,6 +35,10 @@ export default function RootLayout() {
             <Stack.Screen name="dashboard/premium" options={{ title: 'Dashboard (Premium)' }} />
             <Stack.Screen name="auth/mfa-setup" options={{ title: 'Enable MFA (TOTP)' }} />
             <Stack.Screen name="auth/mfa-challenge" options={{ title: 'Verify MFA' }} />
+            
+            {/* Agregar las nuevas pantallas que necesitas */}
+            <Stack.Screen name="coach/CoachProfile" options={{ title: 'Perfil del Coach' }} />
+            <Stack.Screen name="session/SessionScreen" options={{ title: 'Sesión en Curso' }} />
           </Stack>
           <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         </NavigationThemeProvider>
