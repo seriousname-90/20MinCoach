@@ -27,39 +27,39 @@ This repository contains the front-end architecture design, PoCs and implementat
   - **expo-router:**  Simplifies navigation by mapping files to routes automatically, improving maintainability.
   - **Expo Go:** Allows fast testing without the need for custom native modules.
 - **Authentication:** `Supabase` (`@supabase/supabase-js`) with `Email OTP` + `TOTP MFA`, secure storage via `expo-secure-store`  
- - **Supabase:** Provides hosted auth and database, reducing backend complexity. Provides an extra security layer to protect user accounts by using TOTP MFA. Enables modern, passwordless login; email OTP steamlines onboarding and improves UX.
- - `@supabase/supabase-js`: JS SDK that works seamlessly in React Native and Expo environments.
- - `expo-secure-store`:  Ensures tokens and secrets are stored encrypted on the device.
+  - **Supabase:** Provides hosted auth and database, reducing backend complexity. Provides an extra security layer to protect user accounts by using TOTP MFA. Enables modern, passwordless login; email OTP steamlines onboarding and improves UX.
+  - `@supabase/supabase-js`: JS SDK that works seamlessly in React Native and Expo environments.
+  - `expo-secure-store`:  Ensures tokens and secrets are stored encrypted on the device.
 - **State Management:** `Redux Toolkit` (global app state), `TanStack Query` (remote server data)
- - **Redux Toolkit:** Holds app logic and provides centralized management for authentication, navigation guards and UI flags. Simplifies setup and enforces best practices.
- - **TanStack Query:** Manages network data, handles caching, retries, background refetching, and synchronization with server state.
+  - **Redux Toolkit:** Holds app logic and provides centralized management for authentication, navigation guards and UI flags. Simplifies setup and enforces best practices.
+  - **TanStack Query:** Manages network data, handles caching, retries, background refetching, and synchronization with server state.
 - **Networking:** Native `fetch` wrapped by `withAuth` interceptor + `httpJson` utility. 
- - `withAuth`: Adds auth headers and handles token refresh logic in one place.
- - `httpJson`: Adds timeouts and automatic JSON parsing to reduce repetitive code.
+  - `withAuth`: Adds auth headers and handles token refresh logic in one place.
+  - `httpJson`: Adds timeouts and automatic JSON parsing to reduce repetitive code.
  This provides a consistent API layer that ensures all network calls follow the same structure and error handling. Also keeps dependencies minimal while adding key functionality (auth, parsing, retries).
 - **Middleware & Security in UI:** Custom guards and interceptors in `/src/middleware`. This will keep UI components clean by abstracting access control and network handling. 
- - `auth.guard.ts`: To ensure only authorized users with correct roles can access certain screens. This will check user roles and redirect unauthorized users.
- - `http.interceptor.ts`: Injects tokens into outgoing requests and handles 401 Unauthorized responses gracefully.
+  - `auth.guard.ts`: To ensure only authorized users with correct roles can access certain screens. This will check user roles and redirect unauthorized users.
+  - `http.interceptor.ts`: Injects tokens into outgoing requests and handles 401 Unauthorized responses gracefully.
 - **Prototype with AI + UX Testing:** `Lovable`, integrated with `Maze` (validar si es esto)
- - `Lovable`: Generates prototype screens consistent with UI components.
- - `Maze`: Allows for UX validation before implementation. Refine UI/UX based on real user interactions.
+  - `Lovable`: Generates prototype screens consistent with UI components.
+  - `Maze`: Allows for UX validation before implementation. Refine UI/UX based on real user interactions.
 - **Services, Listeners & Simulations:** Mock simulations, `SSE` (EventSource), `expo-notifications`, `Daily Prebuilt` via `react-native-view`, `/src/services/realtime.ts`
- - `Daily Prebuilt`: Simulated sessions with basic controls using mock URL.
- - `SSE` & `setInterval`: Mocks to emit events (coach availability, acceptance).
- - `/src/services/realtime.ts`: exposes `subscribePresence()` and `subscribeSession()` for consuming events.
- - `expo-notifications`: Registers the device and displays local pushes based on simulations.
+  - `Daily Prebuilt`: Simulated sessions with basic controls using mock URL.
+  - `SSE` & `setInterval`: Mocks to emit events (coach availability, acceptance).
+  - `/src/services/realtime.ts`: exposes `subscribePresence()` and `subscribeSession()` for consuming events.
+  - `expo-notifications`: Registers the device and displays local pushes based on simulations.
 - **Business Models & Validation:** `/src/models`, `DTOs`, `Zod` schemas
- - `/src/models`: Define entities that will be used by the application.
- - `/src/services/dto.ts`: Maps API responses to internal models for data transformations.
- - `Zod`: Ensures data integrity with schemas and helps generate validators for new entities.
+  - `/src/models`: Define entities that will be used by the application.
+  - `/src/services/dto.ts`: Maps API responses to internal models for data transformations.
+  - `Zod`: Ensures data integrity with schemas and helps generate validators for new entities.
 - **Error Handling & Logging:** `/src/middleware/error.middleware.ts`, `/src/utils/logger.ts`
- - `/src/utils/logger.ts`: Implements **Strategy Pattern** to switch between console output and future remote logging. All layers (services, UI, middleware) use the logger to ensure consistent debugger and traceability. Provides a single point of control for log formatting.
- - `/src/middleware/error.middleware.ts`: Maps API and logic errors to user-friendly UI messages, provides a single point of control for error formatting.
+  - `/src/utils/logger.ts`: Implements **Strategy Pattern** to switch between console output and future remote logging. All layers (services, UI, middleware) use the logger to ensure consistent debugger and traceability. Provides a single point of control for log formatting.
+  - `/src/middleware/error.middleware.ts`: Maps API and logic errors to user-friendly UI messages, provides a single point of control for error formatting.
 - **Styling:** React Native primitives with custom color scheme (blue inputs/text for dark mode). This avoids extra dependencies, while allowing for high-contrast colors to ensure readability and compliance with accessibility standards. Provides a centralized color palette that promotes uniform design across components.
 - **Testing:** `Jest` + `React Testing Library`
- - `Jest`: Provides fats, isolated tests for logic and components. Integrates well with Expo-managed projects.
- - `React Testing Library`: Testing from user's perspective.
- Automated tests will catch regressions early in CI/CD.
+  - `Jest`: Provides fats, isolated tests for logic and components. Integrates well with Expo-managed projects.
+  - `React Testing Library`: Testing from user's perspective.
+Automated tests will catch regressions early in CI/CD.
 
 
 
