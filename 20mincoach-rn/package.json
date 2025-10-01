@@ -1,10 +1,10 @@
 {
   "name": "20mincoach-rn",
-  "main": "expo-router/entry",
   "version": "1.0.0",
+  "private": true,
+  "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
@@ -12,18 +12,20 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --runInBand",
+    "reset-project": "node ./scripts/reset-project.js",
     "seed:users": "node -r dotenv/config scripts/seed-users.js dotenv_config_path=.env.admin"
-
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.2",
-    "@react-navigation/bottom-tabs": "^7.4.7",
+    "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.4",
-    "@react-navigation/native": "^7.1.17",
+    "@react-navigation/native": "^7.1.8",
     "@react-navigation/stack": "^7.4.8",
     "@reduxjs/toolkit": "^2.9.0",
     "@tanstack/react-query": "^5.90.2",
+    "@supabase/supabase-js": "^2.58.0",
+    "expo": "~54.0.10",
     "expo-auth-session": "~7.0.8",
     "expo-constants": "~18.0.9",
     "expo-font": "~14.0.8",
@@ -31,7 +33,7 @@
     "expo-image": "~3.0.8",
     "expo-linking": "~8.0.8",
     "expo-router": "~6.0.8",
-    "expo-secure-store": "~15.0.7",
+    "expo-secure-store": "^15.0.7",
     "expo-splash-screen": "~31.0.10",
     "expo-status-bar": "~3.0.8",
     "expo-symbols": "~1.0.7",
@@ -42,33 +44,30 @@
     "react-native": "0.81.4",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-paper": "^5.14.5",
-    "react-native-reanimated": "~4.1.0",
+    "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
     "react-native-url-polyfill": "^3.0.0",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
-    "react-redux": "^9.2.0",
-    "undefined": "\\"
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.58.0",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
-    "@types/react-native": "^0.72.8",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
+    "babel-plugin-module-resolver": "^5.0.0",
     "dotenv": "^17.2.3",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "eslint-import-resolver-babel-module": "^5.3.2",
     "eslint-import-resolver-typescript": "^4.4.4",
-    "expo": "^54.0.10",
     "jest-expo": "^52.0.6",
-    "react-test-renderer": "^19.1.0",
+    "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
   },
   "imports": {
@@ -76,6 +75,5 @@
     "@components/*": "./components/*",
     "@constants/*": "./constants/*",
     "@hooks/*": "./hooks/*"
-  },
-  "private": true
+  }
 }

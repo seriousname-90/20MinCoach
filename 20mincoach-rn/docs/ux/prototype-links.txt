@@ -1,0 +1,12 @@
+# Prototype & Testing Links
+
+## Lovable AI Prototype
+https://vocal-guru.lovable.app/
+
+## Maze Usability Studies
+
+### Study 1: "Search a fitness coach and open profile"
+https://t.maze.co/449439098
+
+### Study 2: "Accept the suggested coach (Start 20-min request)"
+https://t.maze.co/449452517
