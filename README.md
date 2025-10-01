@@ -66,6 +66,35 @@ This repository contains the front-end architecture design, PoCs and implementat
   - `React Testing Library`: Testing from user's perspective.
 Automated tests will catch regressions early in CI/CD.
 
+# UX Testing Documentation
+
+## Prototype & Usability Testing
+
+### AI Prototype
+- **Tool**: Lovable AI
+- **Purpose**: Generate interactive prototype for user testing
+- **Live Prototype**: [\[PROTOTYPE LINK\]](https://vocal-guru.lovable.app/)
+
+### Usability Studies
+- **Platform**: Maze
+- **Studies**: 2 live studies with 3-5 participants each
+
+#### Study 1: "Search a fitness coach and open profile"
+- **Tests**: User's ability to find and view coach profiles
+- **Metrics**: Completion rate, time on task, click paths
+- **Results**: `/docs/ux/maze-study-results/study-1-metrics.pdf`
+
+#### Study 2: "Accept the suggested coach (Start 20-min request)"
+- **Tests**: User's ability to book a coaching session  
+- **Metrics**: Completion rate, difficulty rating, user feedback
+- **Results**: `/docs/ux/maze-study-results/study-2-heatmaps.png`
+
+### Evidence & Reports
+- **UX Test Report**: `/docs/ux/ux-test-report.md`
+- **Participant Feedback**: `/docs/ux/maze-study-results/participant-feedback.md`
+- **Improvements Backlog**: `/docs/ux/improvements-backlog.md`
+- **Prototype Links**: `/docs/ux/prototype-links.txt`
+
 ## 2. N-Layer Architecture Design
 
 ---
