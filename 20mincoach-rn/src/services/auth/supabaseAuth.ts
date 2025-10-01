@@ -1,37 +1,38 @@
 import { supabase } from '@/src/services/api/supabase';
 
-export async function requestEmailOtp(email: string) {
-  const { data, error } = await supabase.auth.signInWithOtp({
+export async function signUpWithPassword(email: string, password: string) {
+  const { data, error } = await supabase.auth.signUp({
     email,
-    options: {
-      shouldCreateUser: true, // crea el user si no existe
-      // sin redirect: usamos código
-    },
+    password,
   });
   if (error) throw error;
   return data;
 }
 
-export async function verifyEmailOtp(email: string, code: string) {
-  // 1) Intento como OTP de email (sign-in)
-  let { data, error } = await supabase.auth.verifyOtp({
-    email,
-    token: code,
-    type: 'email',
-  });
-
-  // 2) Si falla (p.ej. flujo de confirmación de signup), probamos como 'signup'
-  if (error) {
-    const res2 = await supabase.auth.verifyOtp({
-      email,
-      token: code,
-      type: 'signup',
-    });
-    if (res2.error) throw res2.error;
-    return res2.data;
-  }
-
+export async function signInWithPassword(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
   return data;
+}
+
+export async function setPassword(password: string) {
+  // requiere estar autenticado
+  const { data, error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+  return data;
+}
+
+export async function resetPasswordByEmail(email: string, redirectTo?: string) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo, // opcional: deep link de tu app si quieres manejar “recovery”
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function signOut() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 }
 
 export async function getSession() {
@@ -42,9 +43,4 @@ export async function getSession() {
 export async function getUser() {
   const { data } = await supabase.auth.getUser();
   return data.user ?? null;
-}
-
-export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
 }
