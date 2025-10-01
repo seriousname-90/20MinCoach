@@ -1,6 +1,10 @@
 # 20MinCoach
-CASO #1 Diseño de Software
-
+Diseño de Software / IC-6821
+  
+## Group Members:
+- Daniel Pulido
+- Ian Porras
+- Carlos Ávalos
 
 # Project Architecture Documentation
 
@@ -40,9 +44,10 @@ This repository contains the front-end architecture design, PoCs and implementat
 - **Middleware & Security in UI:** Custom guards and interceptors in `/src/middleware`. This will keep UI components clean by abstracting access control and network handling. 
   - `auth.guard.ts`: To ensure only authorized users with correct roles can access certain screens. This will check user roles and redirect unauthorized users.
   - `http.interceptor.ts`: Injects tokens into outgoing requests and handles 401 Unauthorized responses gracefully.
-- **Prototype with AI + UX Testing:** `Lovable`, integrated with `Maze` (validar si es esto)
+- **Prototype with AI + UX Testing:** `Lovable`, integrated with `Maze` (validar si es esto) and `Figma`
   - `Lovable`: Generates prototype screens consistent with UI components.
   - `Maze`: Allows for UX validation before implementation. Refine UI/UX based on real user interactions.
+  - `Figma`: Prototyping with many tools for exports.
 - **Services, Listeners & Simulations:** Mock simulations, `SSE` (EventSource), `expo-notifications`, `Daily Prebuilt` via `react-native-view`, `/src/services/realtime.ts`
   - `Daily Prebuilt`: Simulated sessions with basic controls using mock URL.
   - `SSE` & `setInterval`: Mocks to emit events (coach availability, acceptance).
@@ -61,7 +66,145 @@ This repository contains the front-end architecture design, PoCs and implementat
   - `React Testing Library`: Testing from user's perspective.
 Automated tests will catch regressions early in CI/CD.
 
+## 2. N-Layer Architecture Design
 
+---
+
+### 1. Presentation Layer (UI)
+**Location:** `/src/components`, `/src/screens`, `/src/navigation`
+- Displays data and collects user input.
+- No business logic; delegates to state or services.
+- Example: `CoachListScreen.tsx` calls `useCoachesQuery()` and renders list.
+
+---
+
+### 2. State Management Layer
+**Location:** `/src/store`, `/src/hooks`, `/src/query`
+- Manages global state (Redux Toolkit) and remote data (TanStack Query).
+- Provides custom hooks for UI consumption.
+- Example: `authSlice.ts`, `useCoachesQuery()`.
+
+---
+
+### 3. Domain Layer (Business Models)
+**Location:** `/src/models`
+- Pure business entities and rules: `User`, `Coach`, `Session`, `Role`.
+- No networking, no middleware.
+- Example: `Coach` class with domain logic (e.g., eligibility checks).
+
+---
+
+### 4. Validation & Transformation Layer
+**Location:** `/src/validators`, `/src/services/dto.ts`
+- DTOs: transform API responses to domain models and vice versa.
+- Validators (Zod schemas) ensure correct data before entering domain layer.
+- Example: `CoachSchema` validates incoming data; `dto.ts` maps `{ first_name } → { firstName }`.
+
+---
+
+### 5. Service / Application Layer
+**Location:** `/src/services`
+- Orchestrates domain models and infrastructure (API/networking) for the UI.
+- Contains business workflows.
+- Example:
+  - `coachService.ts`: calls HTTP, applies DTOs, returns domain objects.
+  - Can use **service-specific middleware** like `auth.guard.ts` to enforce rules at service boundaries.
+
+---
+
+### 6. Infrastructure Layer
+**Location:** `/src/utils`, `/src/config`, `/src/middleware`, `/src/lib`
+- Technical support (purely non-business): HTTP wrappers, logging, storage, error handling.
+- Middleware like `http.interceptor.ts` lives here because it’s **technical, not business**.
+- Example:
+  - `httpJson.ts`: fetch wrapper with timeout and JSON parsing.
+  - `logger.ts`: Strategy pattern logging.
+  - `error.middleware.ts`: maps errors to messages.
+
+---
+
+### 7. Cross-Cutting Concerns
+- **Logging:** via `logger.ts`
+- **Error Handling:** via `error.middleware.ts`
+- **Security:** route guards (`auth.guard.ts` in services layer), token storage.
+- **Configuration:** environment variables and constants in `/src/config`.
+
+---
+
+## 3. Visual Components Strategy
+
+### 1. Component Organization Strategy
+
+**Goal:** Achieve clear separation, discoverability, and reusability.
+
+**Steps for Developers:**
+1. **Directory structure**:  
+   Organize components by **domain/feature** or **atomic design principles**.
+```
+/src/components
+├── /atoms # Buttons, Inputs, Labels, Icons
+├── /molecules # FormRow, Card, CoachListItem
+├── /organisms # CoachList, SessionForm, NavigationBar
+├── /screens # Full screens mapped by expo-router
+└── /theme # Colors, typography, spacing, style constants
+```
+2. **Naming convention**: PascalCase for components (`CoachCard`, `PrimaryButton`), kebab-case for files (`coach-card.tsx`).
+3. **Props-first design**: Components should receive **data and callbacks via props**, avoiding internal state unless necessary.
+4. **Separation from business logic**: Components **do not fetch data** or interact with Redux directly; use hooks or container components.
+
+---
+
+### 2. Component Development Workflow
+
+**Goal:** Standardize the creation of reusable components across the team.
+
+**Steps for Developers:**
+1. **Create the component folder** under the appropriate category (`atoms`, `molecules`, etc.).
+2. **Add the component file** (`ComponentName.tsx`) and optional style file (`ComponentName.styles.ts` or inline styles).
+3. **Define props interface/type** in TypeScript:
+```ts
+interface PrimaryButtonProps {
+  title: string;
+  onPress: () => void;
+  disabled?: boolean;
+}
+```
+4. **Implement the UI** using React Native primitives (`View`, `Text`, `Pressable`) and theme constants.
+5. **Add a Storybook or MDX story** (optional) for visual reference and documentation.
+6. **Export component** from a central `index.ts` for easier imports:
+```ts
+export { default as PrimaryButton } from './atoms/PrimaryButton';
+```
+
+### 3. Component Testing Methodology
+
+**Goal:** Ensure components are robust, reusable, and bug-free.
+
+**Steps for Developers:**
+1. **Unit Test** with **Jest** + **React Testing Library**:
+  - Test rendering of component with different props.
+  - Test user interactions (e.g., button press, text input change).
+```ts
+import { render, fireEvent } from '@testing-library/react-native';
+import PrimaryButton from './PrimaryButton';
+
+test('calls onPress when pressed', () => {
+  const onPressMock = jest.fn();
+  const { getByText } = render(<PrimaryButton title="Click Me" onPress={onPressMock} />);
+  fireEvent.press(getByText('Click Me'));
+  expect(onPressMock).toHaveBeenCalled();
+});
+```
+2. Integration Test for compound components (molecules/organisms):
+  - Render with mock data.
+  - Validate interactions between child components.
+3. Accessibility checks:
+  - Ensure `accessible`, `accessibilityLabel`, and `accessibilityRole` are properly set.
+4. Continuous Integration:
+  - All tests must pass before merge.
+  - Run tests in CI pipeline (GitHub Actions, Bitrise, or similar).
+
+---
 
 ## Directory Structure
 ```
@@ -76,72 +219,6 @@ src
 ├── /navigation # App navigation
 └── /test-utils # Testing utilities
 ```
-
-## Architecture Layers
-
-### 1. Models Layer (`/src/models`)
-**Purpose**: Represent business entities and encapsulate business logic.
-
-**Key Files**:
-- `BaseModel.ts` - Abstract base class for all models
-- `User.ts`, `Coach.ts`, `SessionRequest.ts`, `Earning.ts` - Domain models
-- `index.ts` - Barrel exports
-
-**Responsibilities**:
-- Business logic implementation
-- Data validation rules
-- Computed properties and methods
-- Data transformation methods
-
-### 2. Services Layer (`/src/services`)
-**Purpose**: Handle business logic, API communication, and data transformation.
-
-**Key Files**:
-- `api.ts` - HTTP client with error handling
-- `dto.ts` - Data Transfer Object transformations
-- `dailyService.ts` - Video call service (example)
-
-**Responsibilities**:
-- API communication
-- Data transformation (DTO ↔ Model)
-- Business operations coordination
-- Error handling
-
-### 3. Validators Layer (`/src/validators`)
-**Purpose**: Data validation using Zod schemas.
-
-**Key Files**:
-- `schemas.ts` - Zod validation schemas
-- `index.ts` - Validation utilities
-
-**Responsibilities**:
-- Input validation
-- Type safety at runtime
-- Schema definitions
-- Validation error messages
-
-### 4. Utilities Layer (`/src/utils`)
-**Purpose**: Shared utilities and cross-cutting concerns.
-
-**Key Files**:
-- `logger.ts` - Strategy-based logging
-- `errors.ts` - Custom error classes
-
-**Responsibilities**:
-- Logging strategies
-- Error class hierarchy
-- Utility functions
-
-### 5. Middleware Layer (`/src/middleware`)
-**Purpose**: Global error handling and request/response processing.
-
-**Key Files**:
-- `error.middleware.ts` - Error handling middleware
-
-**Responsibilities**:
-- Global error catching
-- Error transformation for UI
-- Logging integration
 
 ## Data Flow
 API Request → API Service → DTO Transformation → Validation → Model → Component
@@ -219,3 +296,158 @@ class NotificationService {
 }
 
 export const notificationService = new NotificationService();
+```
+
+---
+# Referencia para N-Layer Architecture
+
+
+### 1. **Presentation Layer**
+Render UI elements and handle user interactions.
+  - Present data to users
+  - Capture user input
+  - Manage component state and lifecycle
+  - Implement accessibility standards
+  - Ensure responsive design compliance
+  - Compose reusable UI components
+
+### 2. **Controller Layer**
+Mediate between UI and business logic
+  - Handle user input validation
+  - Coordinate business service calls
+  - Manage side effects
+  - Transform data for presentation
+  - Provide hook-based connectors to components
+  - Implement dependency injection for services
+
+### 3. **Model Layer** (`/src/models`)
+Define data structures and validation rules
+  - Define entity interfaces and classes
+  - Implement data validation logic
+  - Maintain data integrity rules
+  - Provide type definitions
+  - Handle data serialization/deserialization
+
+  **Key Files**:
+  - `BaseModel.ts` - Abstract base class for all models
+  - `User.ts`, `Coach.ts`, `SessionRequest.ts`, `Earning.ts` - Domain models
+  - `index.ts` - Barrel exports
+
+### 4. **Middleware Layer** (`/src/middleware`)
+Intercept and process requests/responses
+  - Handle HTTP request/response interception
+  - Manage authentication tokens
+  - Implement cross-cutting concerns
+  - Process errors before they reach components
+  - Validate permissions for routes
+  - Error transformation for UI
+  - Logging integration
+
+  **Key Files**:
+  - `error.middleware.ts` - Error handling middleware
+
+
+
+### 5. **Business Layer**
+Implement core business logic and rules
+  - Enforce business rules and validation
+  - Coordinate domain operations
+  - Manage business workflows
+  - Implement domain-driven design patterns
+  - Handle complex business transactions
+
+### 6. **Proxy/Client/Services Layer**
+Communicate with external services and APIs
+  - Abstract API communication details
+  - Handle HTTP requests/responses
+  - Manage service endpoints
+  - Implement retry mechanisms
+  - Handle service 
+  
+### 7. **Background/Jobs/Listeners Layer**
+Manage asynchronous operations and real-time updates
+  - Handle periodic data refresh
+  - Manage real-time event listeners
+  - Process background tasks
+  - Implement pub/sub patterns
+  - Coordinate WebSocket connections
+
+### 8. **Validators Layer**
+Validate data integrity and business rules
+  - Validate user input data
+  - Enforce data format rules
+  - Provide validation error messages
+  - Implement cross-field validation
+  - Reuse validation logic across layers
+
+### 9. **DTOs Layer**
+Transform data between external and internal formats
+  - Define data transfer object interfaces
+  - Transform API responses to internal models
+  - Handle data normalization
+  - Manage version compatibility
+  - Isolate external API changes
+
+### 10. **State Management Layer**
+Manage application-wide state
+  - Store and retrieve global state
+  - Handle state persistence
+  - Manage state transitions
+  - Coordinate component state sharing
+  - Implement state 
+  
+### 11. **Styles Layer**
+Manage visual presentation and theming
+  - Define design system and themes
+  - Implement responsive breakpoints
+  - Manage CSS-in-JS or styled components
+  - Handle dark/light mode switching
+  - Ensure visual consistency
+
+### 12. **Utilities Layer**
+Provide reusable helper functions and services
+  - Implement common utility functions
+  - Provide date/number formatting
+  - Handle common transformations
+  - Implement singleton services
+  - Share reusable logic across application
+
+### 13. **Exception Handling Layer**
+Manage error handling and user feedback
+  - Catch and process errors
+  - Transform technical errors to user-friendly messages
+  - Implement error recovery strategies
+  - Log errors appropriately
+  - Provide consistent error handling patterns
+
+### 14. **Logging Layer**
+Handle application logging and monitoring
+  - Record application events and errors
+  - Implement structured logging
+  - Support multiple log providers
+  - Manage log levels and filtering
+  - Provide audit trails
+
+### 15. **Security Layer**
+Manage authentication and authorization
+  - Handle user authentication
+  - Manage authorization rules
+  - Secure data storage
+  - Implement security best practices
+  - Protect against common vulnerabilities
+
+### 16. **Linter Configuration Layer**
+Enforce code quality and consistency
+  - Define coding standards
+  - Enforce code style rules
+  - Prevent common errors
+  - Maintain code quality metrics
+  - Automate code review processes
+
+### 17. **Build and Deployment Pipeline Layer**
+Manage application build and deployment
+  - Handle environment-specific builds
+  - Optimize production bundles
+  - Manage deployment configurations
+  - Run automated tests
+  - Ensure deployment reliability
