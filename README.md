@@ -67,7 +67,7 @@ Automated tests will catch regressions early in CI/CD.
 
 ## 2. N-Layer Architecture Design
 
-### 1. **Presentation Layer** `/src/components`, `/src/screens`, `/src/navigation`
+### 2.1. **Presentation Layer** `/app/coach`, `/app/(tabs)`, `/app/auth`, `/app/dashboard`
 Render UI elements and handle user interactions.
   - Present data to users
   - Capture user input
@@ -76,7 +76,7 @@ Render UI elements and handle user interactions.
   - Ensure responsive design compliance
   - Compose reusable UI components
 ---
-### 2. **Controller Layer** (`/hooks`)
+### 2.2. **Controller Layer** 
 Mediate between UI and business logic
   - Handle user input validation
   - Coordinate business service calls
@@ -85,7 +85,7 @@ Mediate between UI and business logic
   - Provide hook-based connectors to components
   - Implement dependency injection for services
 ---
-### 3. **Model Layer** (`/src/models`)
+### 2.3. **Model Layer** (`/src/models`)
 Define data structures and validation rules
   - Define entity interfaces and classes
   - Implement data validation logic
@@ -98,7 +98,7 @@ Define data structures and validation rules
   - `User.ts`, `Coach.ts`, `SessionRequest.ts`, `Earning.ts` - Domain models
   - `index.ts` - Barrel exports
 ---
-### 4. **Middleware Layer** (`/src/middleware`)
+### 2.4. **Middleware Layer** (`/src/middleware`)
 Intercept and process requests/responses
   - Handle HTTP request/response interception
   - Manage authentication tokens
@@ -142,7 +142,7 @@ App Components
   
 
 ---
-### 5. **Business Layer**
+### 2.5. **Business Layer**
 Implement core business logic and rules
   - Enforce business rules and validation
   - Coordinate domain operations
@@ -150,7 +150,7 @@ Implement core business logic and rules
   - Implement domain-driven design patterns
   - Handle complex business transactions
 ---
-### 6. **Proxy/Client/Services Layer**
+### 2.6. **Proxy/Client/Services Layer**
 Communicate with external services and APIs
   - Abstract API communication details
   - Handle HTTP requests/responses
@@ -158,7 +158,7 @@ Communicate with external services and APIs
   - Implement retry mechanisms
   - Handle service 
 --- 
-### 7. **Background/Jobs/Listeners Layer**
+### 2.7. **Background/Jobs/Listeners Layer**
 Manage asynchronous operations and real-time updates
   - Handle periodic data refresh
   - Manage real-time event listeners
@@ -166,7 +166,7 @@ Manage asynchronous operations and real-time updates
   - Implement pub/sub patterns
   - Coordinate WebSocket connections
 ---
-### 8. **Validators Layer**(`/src/validators`)
+### 2.8. **Validators Layer**(`/src/validators`)
 Validate data integrity and business rules
   - Validate user input data
   - Enforce data format rules
@@ -174,10 +174,10 @@ Validate data integrity and business rules
   - Implement cross-field validation
   - Reuse validation logic across layers
 
-  Validators must be used whenever API data is received, it uses the DTOs and other validations to make sure the data was received as expected. See `/src/validators/coach.validator.ts` for the implementation of the validators. Follow the example in `/src/mappers/coach.mapper.ts` to use the validateCoachDTO function.
+  Validators must be used whenever API data is received, it uses the DTOs and other validations to make sure the data was received as expected. See `/src/validators/coach.validator.ts` for the implementation of the validators. Follow the example in `/src/mappers/coach.mapper.ts` to use the validateCoachDTO function. All validation logic should be implemented here, it can be different regex to check for names in correct formatting, remove duplicates in arrays, etc.
 
 ---
-### 9. **DTOs Layer** (`/src/dto`)
+### 2.9. **DTOs Layer** (`/src/dto`)
 Transform data between external and internal formats
   - Define data transfer object interfaces
   - Transform API responses to internal models
@@ -201,7 +201,7 @@ FrontEnd mappers implement DTO classes to access API data. See `/src/dto/coach.d
 #### Example
 
 ---
-### 10. **State Management Layer** (`/src/store`)
+### 2.10. **State Management Layer** (`/src/store`)
 Manage application-wide state
   - Store and retrieve global state
   - Handle state persistence
@@ -218,7 +218,7 @@ Manage application-wide state
   ![Store Command Pattern Sequence](./images/diagrams/StoreCommandSequence.svg)
 
 --- 
-### 11. **Styles Layer** (`/src/`)
+### 2.11. **Styles Layer** (`/src/`)
 Manage visual presentation and theming
   - Define design system and themes
   - Implement responsive breakpoints
@@ -226,7 +226,7 @@ Manage visual presentation and theming
   - Handle dark/light mode switching
   - Ensure visual consistency
 ---
-### 12. **Utilities Layer** (`/src/utils`)
+### 2.12. **Utilities Layer** (`/src/utils`)
 Provide reusable helper functions and services
   - Implement common utility functions
   - Provide date/number formatting
@@ -234,7 +234,7 @@ Provide reusable helper functions and services
   - Implement singleton services
   - Share reusable logic across application
 ---
-### 13. **Exception Handling Layer** (`/src/utils/error`)
+### 2.13. **Exception Handling Layer** (`/src/utils/error`)
 Manage error handling and user feedback
   - Catch and process errors
   - Transform technical errors to user-friendly messages
@@ -298,7 +298,7 @@ Application Error Flow
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 ---
-### 14. **Logging Layer** (`/src/utils/logger`)
+### 2.14. **Logging Layer** (`/src/utils/logger`)
 Handle application logging and monitoring
   - Record application events and errors
   - Implement structured logging
@@ -372,18 +372,106 @@ Client code should be calling the logger and use the different methods for the l
 └──────────────────┘    └──────────────────┘    └──────────────────┘    └──────────────────┘
 ```
 
-
-
 ---
-### 15. **Security Layer**
+### 2.15. **Security Layer** (`/src/api/supabase.ts`, `/src/auth/mfa.ts`, `/src/auth/session.ts`, `/src/auth/supabaseAuth.ts`)
 Manage authentication and authorization
   - Handle user authentication
   - Manage authorization rules
   - Secure data storage
   - Implement security best practices
   - Protect against common vulnerabilities
+
+#### Security Layer Architecture
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  SECURITY LAYER                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │  AUTHENTICATION │  │  AUTHORIZATION  │  │ DATA SECURITY│ │
+│  │                 │  │                 │  │              │ │
+│  │ • User Login    │  │ • Access Rules  │  │ • Encryption │ │
+│  │ • Session Mgmt  │  │ • Role Checks   │  │ • Secure     │ │
+│  │ • MFA Flows     │  │ • Permissions   │  │   Storage    │ │
+│  │ • Token Refresh │  │ • Policy        │  │ • Validation │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+         │               │               │               │
+         ▼               ▼               ▼               ▼
+┌───────────────┬───────────────┬───────────────┬───────────────┐
+│ /src/api/     │ /src/auth/    │ /src/auth/    │ /src/auth/    │
+│ supabase.ts   │ mfa.ts        │ session.ts    │ supabaseAuth.ts│
+└───────────────┴───────────────┴───────────────┴───────────────┘
+```
+
+#### Detailed File Structure & Responsibilities
+
+```
+supabase.ts
+├── Client Configuration
+│   ├── SUPABASE_URL from expo-constants
+│   ├── SUPABASE_ANON_KEY from expo-constants
+│   └── PKCE flow for Expo Go
+├── Secure Storage Layer
+│   ├── Expo SecureStore integration
+│   ├── Token persistence
+│   └── Auto-refresh tokens
+├── Auth Session Setup
+│   ├── Redirect URI configuration
+│   └── Proxy setup for Expo Go
+└── Security Features
+    ├── Session detection in URLs
+    ├── Auto token refresh
+    └── Secure token storage
+```
+```
+mfa.ts
+├── TOTP Enrollment
+│   ├── Factor enrollment
+│   └── Secret generation
+├── Verification Flows
+│   ├── Challenge and verify
+│   └── 6-digit code validation
+└── Factor Management
+    ├── List enrolled factors
+    └── TOTP-specific operations
+```
+```
+session.ts
+├── Session Management
+│   ├── Get current session
+│   └── Access token retrieval
+├── Role-Based Authorization
+│   ├── Extract roles from app_metadata
+│   ├── Fallback to raw_app_meta_data
+│   └── Default to empty array
+└── User Context
+    ├── Email extraction
+    └── Authentication snapshot
+```
+```
+supabaseAuth.ts
+├── Password Authentication
+│   ├── Sign up with email/password
+│   ├── Sign in with email/password
+│   └── Error handling
+├── Password Management
+│   ├── Set/update password
+│   ├── Password reset flow
+│   └── Email redirect configuration
+├── Session Operations
+│   ├── Sign out
+│   ├── Get current session
+│   └── Get user info
+└── Recovery Flows
+    └── Password reset email
+```
+
+![App Security Flow](./images/diagrams/Security%20Flow.svg)
+
 ---
-### 16. **Linter Configuration Layer** (`/src/eslint.config.js`)
+### 2.16. **Linter Configuration Layer** (`/src/eslint.config.js`)
 Enforce code quality and consistency
   - Define coding standards
   - Enforce code style rules
@@ -391,7 +479,7 @@ Enforce code quality and consistency
   - Maintain code quality metrics
   - Automate code review processes
 ---
-### 17. **Build and Deployment Pipeline Layer** (`EAS Build`)
+### 2.17. **Build and Deployment Pipeline Layer** (`EAS Build`)
 Manage application build and deployment
   - Handle environment-specific builds
   - Optimize production bundles
@@ -412,9 +500,9 @@ Manage application build and deployment
 #### Atomic Design Structure
 ```
 /src/components
-├── /atoms           # Basic UI elements (Button, Input, Text)
-├── /molecules       # Component combinations (SearchBar, CoachCard)
-├── /organisms       # Complex sections (CoachList, SessionControls)
+├── /ui              # Basic UI elements (Button, Input, Text)
+├── /coach           # Component combinations (CoachCard)
+├── /layout          # Complex sections (Grid, ResponsiveContainer)
 ├── /templates       # Page layouts
 └── /theme           # Design system
 ```
@@ -428,7 +516,7 @@ Manage application build and deployment
 
 **Standardized component creation process:**
 
-1. **Create component folder** under appropriate category (atoms, molecules, etc.)
+1. **Create component folder** under appropriate category (ui, coach, layout, etc.)
 2. **Add component file** (`ComponentName.tsx`) with TypeScript interface:
 ```typescript
 interface PrimaryButtonProps {
@@ -534,20 +622,12 @@ src
 └── /test-utils # Testing utilities
 ```
 
-## Data Flow
-API Request → API Service → DTO Transformation → Validation → Model → Component
-↓
-Error Handling → Logging → UI Error Display
-
-All the requested data from the API goes through the API Service, then the DTOs help adapt API fields into the objects used by the models of the project. All DTOs are validated before going to the model.
-
-
 ## 2. How-to Guides
 
 ```markdown
-# How to Add a New Service
+### How to Add a New Service
 
-## Step 1: Create the Service File
+### Step 1: Create the Service File
 
 Create a new file in `/src/services/`:
 
@@ -644,7 +724,6 @@ export const notificationService = new NotificationService();
 - **Prototype Links**: `/docs/ux/prototype-links.txt`
 
 # Referencia para N-Layer Architecture
-
 
 ### 1. Presentation Layer (UI)
 **Location:** `/src/components`, `/src/screens`, `/src/navigation`
