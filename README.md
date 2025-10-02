@@ -487,20 +487,21 @@ Client code should be calling `error.toUI()` method, depending on the strategy t
 
 #### Application Error Flow
 Application Error Flow
+```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │  Client Layer   │    │  Error Factory   │    │    UI Layer     │
 ├─────────────────┤    ├──────────────────┤    ├─────────────────┤
-│ HTTP Request    │───▶│ fromUnknown()    │───▶│ error.toUI()    │
+│ HTTP Request    │───>│ fromUnknown()    │───>│ error.toUI()    │
 │ fails with      │    │ converts to      │    │ transforms to   │
 │ status 500      │    │ typed error      │    │ user-friendly   │
 │                 │    │                  │    │ message         │
-│ Validation      │───▶│                  │───▶│                 │
+│ Validation      │───>│                  │───>│                 │
 │ fails           │    │                  │    │ shows field     │
 │                 │    │                  │    │ errors          │
-│ Network         │───▶│                  │───▶│ shows retry     │
+│ Network         │───>│                  │───>│ shows retry     │
 │ timeout         │    │                  │    │ button          │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
-
+```
 ---
 ### 14. **Logging Layer** (`/src/utils/logger`)
 Handle application logging and monitoring
@@ -509,6 +510,75 @@ Handle application logging and monitoring
   - Support multiple log providers
   - Manage log levels and filtering
   - Provide audit trails
+
+![Logger UML](./images/diagrams/Logger.png)
+
+```
+src/utils/logger.ts
+├── Types & Interfaces
+│   ├── LogLevel = 'info' | 'warn' | 'error'
+│   └── LogProvider (interface)
+│       └── log(level, message, ctx?)
+│
+├── Concrete Strategies
+│   ├── ConsoleProvider (implements LogProvider)
+│   │   └── log() → console methods
+│   └── MemoryProvider (implements LogProvider)
+│       ├── records: Array
+│       ├── log() → store in memory
+│       └── clear() → clear records
+│
+└── Context
+    └── Logger
+        ├── provider: LogProvider
+        ├── constructor(provider?)
+        ├── setProvider(provider)
+        ├── info(message, ctx?)
+        ├── warn(message, ctx?)
+        └── error(message, ctx?)
+```
+
+![Logger Strategy Sequence](./images/diagrams/LoggerStrategySequence.svg)
+
+#### Strategies
+
+##### ConsoleProvider Strategy
+Override `log()` method to add the logging for the console and manage different loggin levels.
+##### MemoryProvider Strategy
+Use records Array to store records on memory. Override `log()` method to push logs into the array.
+##### LogProvider Strategy
+Override `log()` method to add the logging for base loggin.
+##### FutureProvider Strategy
+Add different attributes needed for the new provider logic. Override `log()` method to add the logging logic for the provider implemented.
+
+Client code should be calling the logger and use the different methods for the log type. Logger will call the selected strategy.
+
+![Logger Strategies Example](./images/diagrams/LoggerStrategies%20Example.svg)
+
+#### Application Error Flow
+Application Error Flow
+```
+┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│  Application     │    │   Logger         │    │  LogProvider     │    │  Destination     │
+│    Code          │    │   Facade         │    │  Interface       │    │                  │
+├──────────────────┤    ├──────────────────┤    ├──────────────────┤    ├──────────────────┤
+│ Service calls    │───>│ info()           │───>│ log()            │───>│ Console          │
+│ logger.info()    │    │                  │    │                  │    │                  │
+│                  │    │                  │    │                  │    │ writes to        │
+│ API layer logs   │───>│ warn()           │───>│                  │───>│ browser/devtools │
+│ errors           │    │                  │    │                  │    │                  │
+│                  │    │                  │    │                  │    │ Memory           │
+│ Test code uses   │───>│ error()          │───>│                  │───>│                  │
+│ memory provider  │    │                  │    │                  │    │ stores in array  │
+│                  │    │ setProvider()    │    │                  │    │                  │
+│ Production swaps │───>│ swaps strategy   │───>│                  │───>│ File             │
+│ to file logging  │    │ at runtime       │    │                  │    │                  │
+│                  │    │                  │    │                  │    │ writes to disk   │
+└──────────────────┘    └──────────────────┘    └──────────────────┘    └──────────────────┘
+```
+
+
+
 ---
 ### 15. **Security Layer**
 Manage authentication and authorization
