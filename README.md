@@ -339,7 +339,7 @@ Render UI elements and handle user interactions.
   - Implement accessibility standards
   - Ensure responsive design compliance
   - Compose reusable UI components
-
+---
 ### 2. **Controller Layer** (`/hooks`)
 Mediate between UI and business logic
   - Handle user input validation
@@ -348,7 +348,7 @@ Mediate between UI and business logic
   - Transform data for presentation
   - Provide hook-based connectors to components
   - Implement dependency injection for services
-
+---
 ### 3. **Model Layer** (`/src/models`)
 Define data structures and validation rules
   - Define entity interfaces and classes
@@ -361,7 +361,7 @@ Define data structures and validation rules
   - `BaseModel.ts` - Abstract base class for all models
   - `User.ts`, `Coach.ts`, `SessionRequest.ts`, `Earning.ts` - Domain models
   - `index.ts` - Barrel exports
-
+---
 ### 4. **Middleware Layer** (`/src/middleware`)
 Intercept and process requests/responses
   - Handle HTTP request/response interception
@@ -374,7 +374,7 @@ Intercept and process requests/responses
 
   **Key Files**:
   - `error.middleware.ts` - Error handling middleware
-
+---
 ### 5. **Business Layer**
 Implement core business logic and rules
   - Enforce business rules and validation
@@ -382,7 +382,7 @@ Implement core business logic and rules
   - Manage business workflows
   - Implement domain-driven design patterns
   - Handle complex business transactions
-
+---
 ### 6. **Proxy/Client/Services Layer**
 Communicate with external services and APIs
   - Abstract API communication details
@@ -390,7 +390,7 @@ Communicate with external services and APIs
   - Manage service endpoints
   - Implement retry mechanisms
   - Handle service 
-  
+--- 
 ### 7. **Background/Jobs/Listeners Layer**
 Manage asynchronous operations and real-time updates
   - Handle periodic data refresh
@@ -398,7 +398,7 @@ Manage asynchronous operations and real-time updates
   - Process background tasks
   - Implement pub/sub patterns
   - Coordinate WebSocket connections
-
+---
 ### 8. **Validators Layer**
 Validate data integrity and business rules
   - Validate user input data
@@ -406,7 +406,7 @@ Validate data integrity and business rules
   - Provide validation error messages
   - Implement cross-field validation
   - Reuse validation logic across layers
-
+---
 ### 9. **DTOs Layer**
 Transform data between external and internal formats
   - Define data transfer object interfaces
@@ -414,7 +414,7 @@ Transform data between external and internal formats
   - Handle data normalization
   - Manage version compatibility
   - Isolate external API changes
-
+---
 ### 10. **State Management Layer** (`/src/store`)
 Manage application-wide state
   - Store and retrieve global state
@@ -422,7 +422,7 @@ Manage application-wide state
   - Manage state transitions
   - Coordinate component state sharing
   - Implement state 
-  
+--- 
 ### 11. **Styles Layer** (`/src/models`)
 Manage visual presentation and theming
   - Define design system and themes
@@ -430,7 +430,7 @@ Manage visual presentation and theming
   - Manage CSS-in-JS or styled components
   - Handle dark/light mode switching
   - Ensure visual consistency
-
+---
 ### 12. **Utilities Layer** (`/src/utils`)
 Provide reusable helper functions and services
   - Implement common utility functions
@@ -438,7 +438,7 @@ Provide reusable helper functions and services
   - Handle common transformations
   - Implement singleton services
   - Share reusable logic across application
-
+---
 ### 13. **Exception Handling Layer** 
 Manage error handling and user feedback
   - Catch and process errors
@@ -447,7 +447,7 @@ Manage error handling and user feedback
   - Log errors appropriately
   - Provide consistent error handling patterns
 
-  ![Error Handling](./images/diagrams/ErrorHandling.png)
+  ![Error Handling UML](./images/diagrams/ErrorHandling.png)
 
 ```
   Type System Hierarchy
@@ -468,6 +468,40 @@ ErrorFactory (static)
 └── fromUnknown(error): BaseError
 ```
 
+![Error Handling Factory Sequence](./images/diagrams/ErrorFactorySequence.svg)
+
+#### Strategies
+
+##### ApiError Strategy
+This should add a status code referring to the status of the API call and the url of the API being used. Override `toUI()` method to add the different user friendly messages for the known error codes. Retryable is based on the status code received.
+##### ValidationError Strategy
+This should add the object where the field errors presented. Override `toUI()` method to handle the error message, highlight UI Component that presented the first error, etc. Should not be retryable.
+##### NetworkError Strategy
+Override `toUI()` method to add network message, add retry button. Should always be retryable.
+##### BusinessError Strategy
+Override `toUI()` method to add messages for known business errors, add default message for unkown errors. Can be retryable.
+
+Client code should be calling `error.toUI()` method, depending on the strategy the different error handling variations will act in order to show user friendly messages, set retryable, etc.
+
+![Error Handling Strategies Example](./images/diagrams/ErrorStrategies%20Example.png)
+
+#### Application Error Flow
+Application Error Flow
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Client Layer   │    │  Error Factory   │    │    UI Layer     │
+├─────────────────┤    ├──────────────────┤    ├─────────────────┤
+│ HTTP Request    │───▶│ fromUnknown()    │───▶│ error.toUI()    │
+│ fails with      │    │ converts to      │    │ transforms to   │
+│ status 500      │    │ typed error      │    │ user-friendly   │
+│                 │    │                  │    │ message         │
+│ Validation      │───▶│                  │───▶│                 │
+│ fails           │    │                  │    │ shows field     │
+│                 │    │                  │    │ errors          │
+│ Network         │───▶│                  │───▶│ shows retry     │
+│ timeout         │    │                  │    │ button          │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+
+---
 ### 14. **Logging Layer** (`/src/utils/logger`)
 Handle application logging and monitoring
   - Record application events and errors
@@ -475,7 +509,7 @@ Handle application logging and monitoring
   - Support multiple log providers
   - Manage log levels and filtering
   - Provide audit trails
-
+---
 ### 15. **Security Layer**
 Manage authentication and authorization
   - Handle user authentication
@@ -483,7 +517,7 @@ Manage authentication and authorization
   - Secure data storage
   - Implement security best practices
   - Protect against common vulnerabilities
-
+---
 ### 16. **Linter Configuration Layer** (`/src/eslint.config.js`)
 Enforce code quality and consistency
   - Define coding standards
@@ -491,7 +525,7 @@ Enforce code quality and consistency
   - Prevent common errors
   - Maintain code quality metrics
   - Automate code review processes
-
+---
 ### 17. **Build and Deployment Pipeline Layer** (`EAS Build`)
 Manage application build and deployment
   - Handle environment-specific builds
