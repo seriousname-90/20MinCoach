@@ -4,7 +4,7 @@
     "strict": true,
     "baseUrl": ".",
     "moduleResolution": "bundler",
-    "types": ["expo", "expo-router"],
+    "types": ["expo", "expo-router", "jest"],
     "paths": {
       "@/*": ["./*"],
       "@app/*": ["./app/*"],
