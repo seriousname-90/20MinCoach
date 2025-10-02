@@ -404,60 +404,89 @@ Manage application build and deployment
 
 ## 3. Visual Components Strategy
 
-### 1. Component Organization Strategy
+### Overview
+*Note: This section documents the proposed component architecture and testing strategy. None of these components or responsive designs have been implemented yet, but they represent the planned approach for the 20minCoach frontend.*
 
-**Goal:** Achieve clear separation, discoverability, and reusability.
+### 3.1 Component Organization Strategy
 
-**Steps for Developers:**
-1. **Directory structure**:  
-   Organize components by **domain/feature** or **atomic design principles**.
+#### Atomic Design Structure
 ```
 /src/components
-├── /atoms # Buttons, Inputs, Labels, Icons
-├── /molecules # FormRow, Card, CoachListItem
-├── /organisms # CoachList, SessionForm, NavigationBar
-├── /screens # Full screens mapped by expo-router
-└── /theme # Colors, typography, spacing, style constants
+├── /atoms           # Basic UI elements (Button, Input, Text)
+├── /molecules       # Component combinations (SearchBar, CoachCard)
+├── /organisms       # Complex sections (CoachList, SessionControls)
+├── /templates       # Page layouts
+└── /theme           # Design system
 ```
-2. **Naming convention**: PascalCase for components (`CoachCard`, `PrimaryButton`), kebab-case for files (`coach-card.tsx`).
-3. **Props-first design**: Components should receive **data and callbacks via props**, avoiding internal state unless necessary.
-4. **Separation from business logic**: Components **do not fetch data** or interact with Redux directly; use hooks or container components.
 
----
+#### Development Principles
+- **Single Responsibility**: Each component has one clear purpose
+- **TypeScript Interfaces**: Strongly typed props for all components
+- **Composition over Configuration**: Prefer children props over complex configs
 
-### 2. Component Development Workflow
+### 3.2 Component Development Workflow
 
-**Goal:** Standardize the creation of reusable components across the team.
+**Standardized component creation process:**
 
-**Steps for Developers:**
-1. **Create the component folder** under the appropriate category (`atoms`, `molecules`, etc.).
-2. **Add the component file** (`ComponentName.tsx`) and optional style file (`ComponentName.styles.ts` or inline styles).
-3. **Define props interface/type** in TypeScript:
-```ts
+1. **Create component folder** under appropriate category (atoms, molecules, etc.)
+2. **Add component file** (`ComponentName.tsx`) with TypeScript interface:
+```typescript
 interface PrimaryButtonProps {
   title: string;
   onPress: () => void;
   disabled?: boolean;
 }
 ```
-4. **Implement the UI** using React Native primitives (`View`, `Text`, `Pressable`) and theme constants.
-5. **Add a Storybook or MDX story** (optional) for visual reference and documentation.
-6. **Export component** from a central `index.ts` for easier imports:
-```ts
-export { default as PrimaryButton } from './atoms/PrimaryButton';
+3. **Implement UI** using React Native primitives and theme constants
+4. **Export component** from central `index.ts` for easier imports
+
+### 3.3 Accessibility Standards
+
+#### Required Props
+All interactive components must include:
+```typescript
+interface AccessibleProps {
+  accessibilityLabel: string;
+  accessibilityHint?: string;
+  accessibilityRole: AccessibilityRole;
+  accessible: boolean;
+}
 ```
 
-### 3. Component Testing Methodology
+#### Screen Reader Support
+- Images have descriptive `accessibilityLabel`
+- Form fields include labels and hints
+- Proper roles for all interactive elements
+- Dynamic content announces changes
 
-**Goal:** Ensure components are robust, reusable, and bug-free.
+### 3.4 Responsive Design
 
-**Steps for Developers:**
-1. **Unit Test** with **Jest** + **React Testing Library**:
-  - Test rendering of component with different props.
-  - Test user interactions (e.g., button press, text input change).
-```ts
+#### Planned Hook
+```typescript
+// hooks/useResponsive.ts (Not implemented)
+const useResponsive = () => {
+  // Would provide breakpoints and responsive values
+  // Small (375px), Medium (414px), Large (768px)
+};
+```
+
+#### Responsive Values
+Components would adapt to:
+- **Small**: iPhone SE and smaller devices
+- **Medium**: Standard smartphones  
+- **Large**: Tablets and larger screens
+
+### 3.5 Component Testing Methodology
+
+#### Testing Levels
+1. **Unit Tests**: Individual component behavior
+2. **Integration Tests**: Component interactions
+3. **Accessibility Tests**: Screen reader compatibility
+
+#### Testing Approach
+```typescript
+// Example test pattern (Not implemented)
 import { render, fireEvent } from '@testing-library/react-native';
-import PrimaryButton from './PrimaryButton';
 
 test('calls onPress when pressed', () => {
   const onPressMock = jest.fn();
@@ -466,14 +495,28 @@ test('calls onPress when pressed', () => {
   expect(onPressMock).toHaveBeenCalled();
 });
 ```
-2. Integration Test for compound components (molecules/organisms):
-  - Render with mock data.
-  - Validate interactions between child components.
-3. Accessibility checks:
-  - Ensure `accessible`, `accessibilityLabel`, and `accessibilityRole` are properly set.
-4. Continuous Integration:
-  - All tests must pass before merge.
-  - Run tests in CI pipeline (GitHub Actions, Bitrise, or similar).
+
+#### Test Utilities
+- React Testing Library for user-centric testing
+- Custom render with all providers
+- Accessibility compliance checks
+
+### 3.6 Theme Support
+
+#### Planned Implementation
+- Dark/Light mode switching capability
+- Centralized color palette
+- Consistent spacing and typography
+
+### 3.7 Quality Gates
+
+#### Pre-Merge Requirements
+- All tests passing
+- TypeScript compilation successful
+- Accessibility audit passed
+- Design system compliance
+
+*Note: This represents the intended architecture. Actual implementation would follow these guidelines during development.*
 
 ---
 
