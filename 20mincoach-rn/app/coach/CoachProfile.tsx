@@ -87,9 +87,6 @@ export default function CoachProfile({ coachId, onBack, onStartSession }: CoachP
     // Verificar si hay pantallas en la pila de navegación
     if (router.canGoBack()) {
       router.back();
-    } else {
-      // Si no hay pantalla anterior, navegar a la pantalla principal
-      router.push('/(tabs)');
     }
   }
 };

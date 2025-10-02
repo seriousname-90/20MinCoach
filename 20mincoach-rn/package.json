@@ -1,16 +1,23 @@
 {
   "name": "20mincoach-rn",
-  "main": "expo-router/entry",
   "version": "1.0.0",
+  "private": true,
+  "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --ci --runInBand",
+    "reset-project": "node ./scripts/reset-project.js",
+    "seed:users": "node -r dotenv/config scripts/seed-users.js dotenv_config_path=.env.admin"
   },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/space-mono": "^0.4.2",
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.2",
     "@react-navigation/bottom-tabs": "^7.4.0",
@@ -19,6 +26,7 @@
     "@react-navigation/stack": "^7.4.8",
     "@reduxjs/toolkit": "^2.9.0",
     "@supabase/supabase-js": "^2.58.0",
+    "@tanstack/react-query": "^5.90.2",
     "expo": "~54.0.10",
     "expo-auth-session": "~7.0.8",
     "expo-constants": "~18.0.9",
@@ -48,12 +56,20 @@
     "react-redux": "^9.2.0"
   },
   "devDependencies": {
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
     "babel-plugin-module-resolver": "^5.0.0",
+    "dotenv": "^17.2.3",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "eslint-import-resolver-babel-module": "^5.3.2",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "jest-expo": "^52.0.6",
+    "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
   },
   "imports": {
@@ -61,6 +77,5 @@
     "@components/*": "./components/*",
     "@constants/*": "./constants/*",
     "@hooks/*": "./hooks/*"
-  },
-  "private": true
+  }
 }
