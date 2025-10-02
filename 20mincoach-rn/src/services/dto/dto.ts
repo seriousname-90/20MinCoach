@@ -5,9 +5,8 @@ import {
   Coach, 
   SessionRequest, 
   Earning, 
-  SessionStatus, 
-  EarningStatus 
-} from '../models';
+} from '../../models';
+
 import { 
   UserSchema, 
   CoachSchema, 
@@ -25,7 +24,7 @@ import {
   type CreateCoach as CreateCoachType
 } from '../validators/schemas';
 import { ValidationHelper } from '../validators';
-import { logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger';
 import { ValidationError, BusinessError } from '../../utils/errors';
 
 // API Response Types
@@ -163,7 +162,7 @@ export class DTOTransformer {
     
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
-      logger.warn('Invalid date string encountered, using current date', { dateString });
+      Logger.warn('Invalid date string encountered, using current date', { dateString });
       return new Date();
     }
     return date;
