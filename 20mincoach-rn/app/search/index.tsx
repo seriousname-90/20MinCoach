@@ -1,9 +1,9 @@
 // app/search/index.tsx
 import { useState, memo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, ScrollView, Alert } from 'react-native';
-import { useRouter, type Href } from 'expo-router';
+import { notifySessionAccepted } from '@/src/services/notifications';
 
-// === Mock data ===
+// === Mock data (simple) ===
 const MOCK_COACHES = [
   { id: '1', name: 'María García', email: 'maria@email.com', specialties: ['Psicología','Salud Mental'], rating: 4.8, reviewCount: 124, hourlyRate: 29.99, isOnline: true,  categories: ['salud-mental'] },
   { id: '2', name: 'Carlos López', email: 'carlos@email.com', specialties: ['Mecánica Automotriz'], rating: 4.6, reviewCount: 89, hourlyRate: 24.99, isOnline: true,  categories: ['automotriz'] },
@@ -72,7 +72,6 @@ const SimpleSearchBar = memo(function SimpleSearchBar({
 });
 
 export default function SearchScreen() {
-  const router = useRouter();
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -85,10 +84,8 @@ export default function SearchScreen() {
     return bySearch && byCat;
   });
 
-  const goCoach = (coach: any) => {
-    router.push(`/coach/${coach.id}` as Href);
-  };
-
+  // Para este PoC, cuando el usuario “solicite”, NO navegamos.
+  // Disparamos una notificación “accepted” (simulada) y el deep-link nos lleva a /session/:id
   const request20min = (coach: any) => {
     Alert.alert(
       'Solicitar sesión',
@@ -97,13 +94,19 @@ export default function SearchScreen() {
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Confirmar',
-          onPress: () => {
-            const q = new URLSearchParams({
+          onPress: async () => {
+            await notifySessionAccepted({
+              type: 'accepted',
+              sessionId: coach.id,          // usamos el id como “id de sesión” fake
               name: coach.name,
-              spec: coach.specialties?.[0] ?? '',
-              price: String(coach.hourlyRate),
-            }).toString();
-            router.push(`/session/${coach.id}?${q}` as Href);
+              spec: coach.specialties?.[0],
+              price: coach.hourlyRate,
+            }, 1500);
+
+            Alert.alert(
+              'Solicitud enviada',
+              'Te avisaremos cuando el coach acepte. Revisa la notificación y tócala para entrar a la sesión.'
+            );
           },
         },
       ],
@@ -147,9 +150,7 @@ export default function SearchScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => goCoach(item)}>
-            <SimpleCoachCard coach={item} onPress={() => request20min(item)} />
-          </TouchableOpacity>
+          <SimpleCoachCard coach={item} onPress={() => request20min(item)} />
         )}
         ListEmptyComponent={
           <View style={{ padding: 40, alignItems: 'center' }}>

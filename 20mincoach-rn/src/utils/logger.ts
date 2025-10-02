@@ -1,5 +1,4 @@
 // src/utils/logger.ts
-
 export type LogLevel = 'info' | 'warn' | 'error';
 
 export interface LogProvider {
@@ -9,9 +8,7 @@ export interface LogProvider {
 export class ConsoleProvider implements LogProvider {
   log(level: LogLevel, message: string, ctx?: unknown) {
     const tag = `[${level}] ${message}`;
-    
     if (level === 'info') ctx ? console.log(tag, ctx) : console.log(tag);
-
     else if (level === 'warn') ctx ? console.warn(tag, ctx) : console.warn(tag);
     else ctx ? console.error(tag, ctx) : console.error(tag);
   }
