@@ -44,10 +44,9 @@ This repository contains the front-end architecture design, PoCs and implementat
 - **Middleware & Security in UI:** Custom guards and interceptors in `/src/middleware`. This will keep UI components clean by abstracting access control and network handling. 
   - `auth.guard.ts`: To ensure only authorized users with correct roles can access certain screens. This will check user roles and redirect unauthorized users.
   - `http.interceptor.ts`: Injects tokens into outgoing requests and handles 401 Unauthorized responses gracefully.
-- **Prototype with AI + UX Testing:** `Lovable`, integrated with `Maze` (validar si es esto) and `Figma`
+- **Prototype with AI + UX Testing:** `Lovable`, integrated with `Maze`
   - `Lovable`: Generates prototype screens consistent with UI components.
   - `Maze`: Allows for UX validation before implementation. Refine UI/UX based on real user interactions.
-  - `Figma`: Prototyping with many tools for exports.
 - **Services, Listeners & Simulations:** Mock simulations, `SSE` (EventSource), `expo-notifications`, `Daily Prebuilt` via `react-native-view`, `/src/services/realtime.ts`
   - `Daily Prebuilt`: Simulated sessions with basic controls using mock URL.
   - `SSE` & `setInterval`: Mocks to emit events (coach availability, acceptance).
@@ -65,35 +64,6 @@ This repository contains the front-end architecture design, PoCs and implementat
   - `Jest`: Provides fats, isolated tests for logic and components. Integrates well with Expo-managed projects.
   - `React Testing Library`: Testing from user's perspective.
 Automated tests will catch regressions early in CI/CD.
-
-# UX Testing Documentation
-
-## Prototype & Usability Testing
-
-### AI Prototype
-- **Tool**: Lovable AI
-- **Purpose**: Generate interactive prototype for user testing
-- **Live Prototype**: [\[PROTOTYPE LINK\]](https://vocal-guru.lovable.app/)
-
-### Usability Studies
-- **Platform**: Maze
-- **Studies**: 2 live studies with 3-5 participants each
-
-#### Study 1: "Search a fitness coach and open profile"
-- **Tests**: User's ability to find and view coach profiles
-- **Metrics**: Completion rate, time on task, click paths
-- **Results**: `/docs/ux/maze-study-results/study-1-metrics.pdf`
-
-#### Study 2: "Accept the suggested coach (Start 20-min request)"
-- **Tests**: User's ability to book a coaching session  
-- **Metrics**: Completion rate, difficulty rating, user feedback
-- **Results**: `/docs/ux/maze-study-results/study-2-heatmaps.png`
-
-### Evidence & Reports
-- **UX Test Report**: `/docs/ux/ux-test-report.md`
-- **Participant Feedback**: `/docs/ux/maze-study-results/participant-feedback.md`
-- **Improvements Backlog**: `/docs/ux/improvements-backlog.md`
-- **Prototype Links**: `/docs/ux/prototype-links.txt`
 
 ## 2. N-Layer Architecture Design
 
@@ -328,6 +298,36 @@ export const notificationService = new NotificationService();
 ```
 
 ---
+
+# UX Testing Documentation
+
+## Prototype & Usability Testing
+
+### AI Prototype
+- **Tool**: Lovable AI
+- **Purpose**: Generate interactive prototype for user testing
+- **Live Prototype**: [\[PROTOTYPE LINK\]](https://vocal-guru.lovable.app/)
+
+### Usability Studies
+- **Platform**: Maze
+- **Studies**: 2 live studies with 3-5 participants each
+
+#### Study 1: "Search a fitness coach and open profile"
+- **Tests**: User's ability to find and view coach profiles
+- **Metrics**: Completion rate, time on task, click paths
+- **Results**: `/docs/ux/maze-study-results/study-1-metrics.pdf`
+
+#### Study 2: "Accept the suggested coach (Start 20-min request)"
+- **Tests**: User's ability to book a coaching session  
+- **Metrics**: Completion rate, difficulty rating, user feedback
+- **Results**: `/docs/ux/maze-study-results/study-2-heatmaps.png`
+
+### Evidence & Reports
+- **UX Test Report**: `/docs/ux/ux-test-report.md`
+- **Participant Feedback**: `/docs/ux/maze-study-results/participant-feedback.md`
+- **Improvements Backlog**: `/docs/ux/improvements-backlog.md`
+- **Prototype Links**: `/docs/ux/prototype-links.txt`
+
 # Referencia para N-Layer Architecture
 
 
@@ -339,8 +339,8 @@ Render UI elements and handle user interactions.
   - Implement accessibility standards
   - Ensure responsive design compliance
   - Compose reusable UI components
-
-### 2. **Controller Layer**
+---
+### 2. **Controller Layer** (`/hooks`)
 Mediate between UI and business logic
   - Handle user input validation
   - Coordinate business service calls
@@ -348,7 +348,7 @@ Mediate between UI and business logic
   - Transform data for presentation
   - Provide hook-based connectors to components
   - Implement dependency injection for services
-
+---
 ### 3. **Model Layer** (`/src/models`)
 Define data structures and validation rules
   - Define entity interfaces and classes
@@ -361,7 +361,7 @@ Define data structures and validation rules
   - `BaseModel.ts` - Abstract base class for all models
   - `User.ts`, `Coach.ts`, `SessionRequest.ts`, `Earning.ts` - Domain models
   - `index.ts` - Barrel exports
-
+---
 ### 4. **Middleware Layer** (`/src/middleware`)
 Intercept and process requests/responses
   - Handle HTTP request/response interception
@@ -374,9 +374,7 @@ Intercept and process requests/responses
 
   **Key Files**:
   - `error.middleware.ts` - Error handling middleware
-
-
-
+---
 ### 5. **Business Layer**
 Implement core business logic and rules
   - Enforce business rules and validation
@@ -384,7 +382,7 @@ Implement core business logic and rules
   - Manage business workflows
   - Implement domain-driven design patterns
   - Handle complex business transactions
-
+---
 ### 6. **Proxy/Client/Services Layer**
 Communicate with external services and APIs
   - Abstract API communication details
@@ -392,7 +390,7 @@ Communicate with external services and APIs
   - Manage service endpoints
   - Implement retry mechanisms
   - Handle service 
-  
+--- 
 ### 7. **Background/Jobs/Listeners Layer**
 Manage asynchronous operations and real-time updates
   - Handle periodic data refresh
@@ -400,7 +398,7 @@ Manage asynchronous operations and real-time updates
   - Process background tasks
   - Implement pub/sub patterns
   - Coordinate WebSocket connections
-
+---
 ### 8. **Validators Layer**
 Validate data integrity and business rules
   - Validate user input data
@@ -408,7 +406,7 @@ Validate data integrity and business rules
   - Provide validation error messages
   - Implement cross-field validation
   - Reuse validation logic across layers
-
+---
 ### 9. **DTOs Layer**
 Transform data between external and internal formats
   - Define data transfer object interfaces
@@ -416,32 +414,32 @@ Transform data between external and internal formats
   - Handle data normalization
   - Manage version compatibility
   - Isolate external API changes
-
-### 10. **State Management Layer**
+---
+### 10. **State Management Layer** (`/src/store`)
 Manage application-wide state
   - Store and retrieve global state
   - Handle state persistence
   - Manage state transitions
   - Coordinate component state sharing
   - Implement state 
-  
-### 11. **Styles Layer**
+--- 
+### 11. **Styles Layer** (`/src/models`)
 Manage visual presentation and theming
   - Define design system and themes
   - Implement responsive breakpoints
   - Manage CSS-in-JS or styled components
   - Handle dark/light mode switching
   - Ensure visual consistency
-
-### 12. **Utilities Layer**
+---
+### 12. **Utilities Layer** (`/src/utils`)
 Provide reusable helper functions and services
   - Implement common utility functions
   - Provide date/number formatting
   - Handle common transformations
   - Implement singleton services
   - Share reusable logic across application
-
-### 13. **Exception Handling Layer**
+---
+### 13. **Exception Handling Layer** 
 Manage error handling and user feedback
   - Catch and process errors
   - Transform technical errors to user-friendly messages
@@ -449,14 +447,69 @@ Manage error handling and user feedback
   - Log errors appropriately
   - Provide consistent error handling patterns
 
-### 14. **Logging Layer**
+  ![Error Handling UML](./images/diagrams/ErrorHandling.png)
+
+```
+  Type System Hierarchy
+BaseError (abstract)
+├── ApiError → { statusCode, url }
+├── ValidationError → { fieldErrors }
+├── NetworkError → { }
+└── BusinessError → { }
+
+UIError (interface)
+├── code: string
+├── message: string  
+├── originalError?: string
+├── fieldErrors?: object
+└── retryable: boolean
+
+ErrorFactory (static)
+└── fromUnknown(error): BaseError
+```
+
+![Error Handling Factory Sequence](./images/diagrams/ErrorFactorySequence.svg)
+
+#### Strategies
+
+##### ApiError Strategy
+This should add a status code referring to the status of the API call and the url of the API being used. Override `toUI()` method to add the different user friendly messages for the known error codes. Retryable is based on the status code received.
+##### ValidationError Strategy
+This should add the object where the field errors presented. Override `toUI()` method to handle the error message, highlight UI Component that presented the first error, etc. Should not be retryable.
+##### NetworkError Strategy
+Override `toUI()` method to add network message, add retry button. Should always be retryable.
+##### BusinessError Strategy
+Override `toUI()` method to add messages for known business errors, add default message for unkown errors. Can be retryable.
+
+Client code should be calling `error.toUI()` method, depending on the strategy the different error handling variations will act in order to show user friendly messages, set retryable, etc.
+
+![Error Handling Strategies Example](./images/diagrams/ErrorStrategies%20Example.png)
+
+#### Application Error Flow
+Application Error Flow
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Client Layer   │    │  Error Factory   │    │    UI Layer     │
+├─────────────────┤    ├──────────────────┤    ├─────────────────┤
+│ HTTP Request    │───▶│ fromUnknown()    │───▶│ error.toUI()    │
+│ fails with      │    │ converts to      │    │ transforms to   │
+│ status 500      │    │ typed error      │    │ user-friendly   │
+│                 │    │                  │    │ message         │
+│ Validation      │───▶│                  │───▶│                 │
+│ fails           │    │                  │    │ shows field     │
+│                 │    │                  │    │ errors          │
+│ Network         │───▶│                  │───▶│ shows retry     │
+│ timeout         │    │                  │    │ button          │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+
+---
+### 14. **Logging Layer** (`/src/utils/logger`)
 Handle application logging and monitoring
   - Record application events and errors
   - Implement structured logging
   - Support multiple log providers
   - Manage log levels and filtering
   - Provide audit trails
-
+---
 ### 15. **Security Layer**
 Manage authentication and authorization
   - Handle user authentication
@@ -464,16 +517,16 @@ Manage authentication and authorization
   - Secure data storage
   - Implement security best practices
   - Protect against common vulnerabilities
-
-### 16. **Linter Configuration Layer**
+---
+### 16. **Linter Configuration Layer** (`/src/eslint.config.js`)
 Enforce code quality and consistency
   - Define coding standards
   - Enforce code style rules
   - Prevent common errors
   - Maintain code quality metrics
   - Automate code review processes
-
-### 17. **Build and Deployment Pipeline Layer**
+---
+### 17. **Build and Deployment Pipeline Layer** (`EAS Build`)
 Manage application build and deployment
   - Handle environment-specific builds
   - Optimize production bundles
