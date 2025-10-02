@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -9,7 +9,7 @@ import { setAuth } from '@/src/store/slices/auth';
 import { listFactors } from '@/src/services/auth/mfa';
 import type { RootState } from '@/src/store';
 
-const BLUE = '#3B82F6';
+const BLUE = '#007AFF';
 
 export default function AuthScreen() {
   const router = useRouter();
@@ -33,19 +33,17 @@ export default function AuthScreen() {
 
       await signInWithPassword(email.trim(), password);
 
-      // 1) Si tiene TOTP, obliga challenge ANTES de entrar a dashboards
+      // Si tiene TOTP, ir a challenge antes de entrar
       try {
-        const factors = await listFactors(); // [{ id, createdAt, ... }]
+        const factors = await listFactors();
         if (factors.length > 0) {
-          // Tiene MFA habilitada → ir a challenge
           router.replace('/auth/mfa-challenge' as Href);
           return;
         }
       } catch {
-        // si falla listFactors, seguimos con el flujo normal
+        /* noop */
       }
 
-      // 2) Si no tiene TOTP, a dashboard por rol
       const s = await getSession();
       if (!s) return Alert.alert('Atención', 'No se pudo iniciar sesión');
       await goToDashboardByRole();
@@ -65,40 +63,102 @@ export default function AuthScreen() {
   };
 
   return (
-    <View style={{ padding: 16, gap: 12 }}>
-      <Text style={{ fontSize: 18, fontWeight: '700', color: BLUE }}>Login (Email + Password)</Text>
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      {/* Header */}
+      <View style={{ padding: 20, backgroundColor: 'white' }}>
+        <Text style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 6 }}>Bienvenido 👋</Text>
+        <Text style={{ color: '#666' }}>Inicia sesión para continuar</Text>
+      </View>
 
-      <TextInput
-        value={email}
-        onChangeText={setEmail}
-        placeholder="tu@correo.com"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        style={{ borderWidth: 1, borderColor: BLUE, borderRadius: 8, padding: 10, color: BLUE, backgroundColor: 'transparent' }}
-        cursorColor={BLUE}
-        selectionColor={BLUE}
-        placeholderTextColor={BLUE}
-      />
-
-      <TextInput
-        value={password}
-        onChangeText={setPassword}
-        placeholder="Contraseña"
-        secureTextEntry
-        style={{ borderWidth: 1, borderColor: BLUE, borderRadius: 8, padding: 10, color: BLUE, backgroundColor: 'transparent' }}
-        cursorColor={BLUE}
-        selectionColor={BLUE}
-        placeholderTextColor={BLUE}
-      />
-
-      <Button title="Iniciar sesión" onPress={onSignIn} />
-      <Button title="Crear cuenta" onPress={onSignUp} />
-
-      {!!auth.email && (
-        <Text style={{ marginTop: 6, color: BLUE }}>
-          Redux → email: {auth.email} | roles: {auth.roles.join(', ') || '—'}
+      {/* Card */}
+      <View
+        style={{
+          margin: 16,
+          padding: 16,
+          borderRadius: 10,
+          backgroundColor: 'white',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 4,
+          elevation: 2,
+          gap: 12,
+        }}
+      >
+        <Text style={{ fontWeight: '700', fontSize: 16, marginBottom: 4, color: '#111' }}>
+          Login (Email + Password)
         </Text>
-      )}
+
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="tu@correo.com"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          style={{
+            borderWidth: 1,
+            borderColor: '#ddd',
+            borderRadius: 8,
+            padding: 12,
+            color: '#111',
+            backgroundColor: 'white',
+          }}
+          cursorColor={BLUE}
+          selectionColor={BLUE}
+          placeholderTextColor="#9ca3af"
+        />
+
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Contraseña"
+          secureTextEntry
+          style={{
+            borderWidth: 1,
+            borderColor: '#ddd',
+            borderRadius: 8,
+            padding: 12,
+            color: '#111',
+            backgroundColor: 'white',
+          }}
+          cursorColor={BLUE}
+          selectionColor={BLUE}
+          placeholderTextColor="#9ca3af"
+        />
+
+        {/* Botón primario */}
+        <TouchableOpacity
+          onPress={onSignIn}
+          style={{
+            backgroundColor: BLUE,
+            paddingVertical: 12,
+            borderRadius: 10,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: 'white', fontWeight: '700' }}>Iniciar sesión</Text>
+        </TouchableOpacity>
+
+        {/* Botón secundario (outline) */}
+        <TouchableOpacity
+          onPress={onSignUp}
+          style={{
+            borderWidth: 1,
+            borderColor: BLUE,
+            paddingVertical: 12,
+            borderRadius: 10,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: BLUE, fontWeight: '700' }}>Crear cuenta</Text>
+        </TouchableOpacity>
+
+        {!!auth.email && (
+          <Text style={{ marginTop: 6, color: '#666' }}>
+            Redux → email: {auth.email} | roles: {auth.roles.join(', ') || '—'}
+          </Text>
+        )}
+      </View>
     </View>
   );
 }

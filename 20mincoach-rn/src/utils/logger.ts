@@ -9,11 +9,10 @@ export interface LogProvider {
 export class ConsoleProvider implements LogProvider {
   log(level: LogLevel, message: string, ctx?: unknown) {
     const tag = `[${level}] ${message}`;
-    // eslint-disable-next-line no-console
+    
     if (level === 'info') ctx ? console.log(tag, ctx) : console.log(tag);
-    // eslint-disable-next-line no-console
+
     else if (level === 'warn') ctx ? console.warn(tag, ctx) : console.warn(tag);
-    // eslint-disable-next-line no-console
     else ctx ? console.error(tag, ctx) : console.error(tag);
   }
 }

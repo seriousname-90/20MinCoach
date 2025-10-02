@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, Text, Button, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '@/src/store';
 import { useRouter, type Href } from 'expo-router';
 import { clearAuth } from '@/src/store/slices/auth';
 import { signOut } from '@/src/services/auth/supabaseAuth';
 import { RequireAuth, RoleGate } from '@/src/middleware/auth.guard';
-import { httpJson } from '@/src/services/http';
+
+const BLUE = '#007AFF';
 
 export default function BasicDashboard() {
   const { email, roles } = useSelector((s: RootState) => s.auth);
@@ -14,11 +15,7 @@ export default function BasicDashboard() {
   const router = useRouter();
 
   const onBuyPremium = () => {
-    Alert.alert(
-      'Premium',
-      'Compra Premium por $59.99/mes para desbloquear "View earnings".',
-      [{ text: 'OK' }],
-    );
+    Alert.alert('Premium', 'Compra Premium por $59.99/mes para desbloquear "View earnings".', [{ text: 'OK' }]);
   };
 
   const onLogout = async () => {
@@ -29,30 +26,66 @@ export default function BasicDashboard() {
 
   return (
     <RequireAuth isAuthed={!!email}>
-      <View style={{ padding: 16, gap: 12 }}>
-        <Text style={{ fontSize: 18, fontWeight: '700' }}>Dashboard (Basic)</Text>
-        <Text>Hola: {email ?? '—'}</Text>
-        <Text>Roles: {roles.join(', ') || '—'}</Text>
+      <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+        {/* Header */}
+        <View style={{ padding: 20, backgroundColor: 'white' }}>
+          <Text style={{ fontSize: 28, fontWeight: 'bold' }}>Dashboard (Basic)</Text>
+          <Text style={{ color: '#666', marginTop: 6 }}>
+            Hola {email ?? '—'} • Roles: {roles.join(', ') || '—'}
+          </Text>
+        </View>
 
-        {/* Acción A visible en ambos (Basic y Premium) */}
-        <RoleGate roles={roles} action="A">
-          <Button title="Start 20-min request" onPress={() => { /* TODO */ }} />
-        </RoleGate>
+        {/* Card de acciones */}
+        <View
+          style={{
+            margin: 16,
+            padding: 16,
+            borderRadius: 10,
+            backgroundColor: 'white',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 4,
+            elevation: 2,
+            gap: 10,
+          }}
+        >
+          {/* Buscar coaches (primario) */}
+          <TouchableOpacity
+            onPress={() => router.push('/search' as Href)}
+            style={{ backgroundColor: BLUE, paddingVertical: 14, borderRadius: 10, alignItems: 'center' }}
+          >
+            <Text style={{ color: 'white', fontWeight: '700' }}>🔎 Buscar coaches</Text>
+          </TouchableOpacity>
 
-        {/* Navegar a prueba de datos */}
-        <Button title="Data Test (Query)" onPress={() => router.push('/tools/data-test' as Href)} />
+          {/* Acción A visible en ambos */}
+          <RoleGate roles={roles} action="A">
+            <TouchableOpacity
+              onPress={() => { /* hook into real action */ }}
+              style={{
+                borderWidth: 1, borderColor: BLUE, paddingVertical: 14, borderRadius: 10, alignItems: 'center',
+              }}
+            >
+              <Text style={{ color: BLUE, fontWeight: '700' }}>Start 20-min request</Text>
+            </TouchableOpacity>
+          </RoleGate>
 
-        {/* Oferta Premium en vez de navegar */}
-        <Button title="Desbloquear Premium" onPress={onBuyPremium} />
+          {/* Oferta Premium */}
+          <TouchableOpacity
+            onPress={onBuyPremium}
+            style={{ backgroundColor: '#ffd700', paddingVertical: 14, borderRadius: 10, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#333', fontWeight: '800' }}>⭐ Desbloquear Premium</Text>
+          </TouchableOpacity>
 
-        {/* PoC Interceptor: Forzar 401 para validar limpieza de sesión y redirect a /auth */}
-        <Button
-          title="Forzar 401"
-          onPress={() => httpJson('https://httpbin.org/status/401').catch(() => {})}
-        />
-
-        {/* Logout */}
-        <Button title="Log out" onPress={onLogout} />
+          {/* Logout */}
+          <TouchableOpacity
+            onPress={onLogout}
+            style={{ backgroundColor: '#ef4444', paddingVertical: 14, borderRadius: 10, alignItems: 'center' }}
+          >
+            <Text style={{ color: 'white', fontWeight: '700' }}>Log out</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </RequireAuth>
   );

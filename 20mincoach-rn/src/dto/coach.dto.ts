@@ -1,5 +1,4 @@
-
-export interface Coach {
+export interface CoachDTO {
   id: string;
   name: string;
   email: string;

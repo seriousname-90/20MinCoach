@@ -16,6 +16,8 @@
     "seed:users": "node -r dotenv/config scripts/seed-users.js dotenv_config_path=.env.admin"
   },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/space-mono": "^0.4.2",
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.2",
     "@react-navigation/bottom-tabs": "^7.4.0",
@@ -23,8 +25,8 @@
     "@react-navigation/native": "^7.1.8",
     "@react-navigation/stack": "^7.4.8",
     "@reduxjs/toolkit": "^2.9.0",
-    "@tanstack/react-query": "^5.90.2",
     "@supabase/supabase-js": "^2.58.0",
+    "@tanstack/react-query": "^5.90.2",
     "expo": "~54.0.10",
     "expo-auth-session": "~7.0.8",
     "expo-constants": "~18.0.9",
