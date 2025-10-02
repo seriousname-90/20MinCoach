@@ -75,8 +75,9 @@ Render UI elements and handle user interactions.
   - Implement accessibility standards
   - Ensure responsive design compliance
   - Compose reusable UI components
+  
 ---
-### 2.2. **Controller Layer** 
+### 2.2. **Controller Layer** `/src/controllers`
 Mediate between UI and business logic
   - Handle user input validation
   - Coordinate business service calls
@@ -84,6 +85,8 @@ Mediate between UI and business logic
   - Transform data for presentation
   - Provide hook-based connectors to components
   - Implement dependency injection for services
+
+  Add controllers inside this folder to handle communication between the model and presentation layer. All the auth and security will be instead redirected to its own layer.
 ---
 ### 2.3. **Model Layer** (`/src/models`)
 Define data structures and validation rules
@@ -97,6 +100,9 @@ Define data structures and validation rules
   - `BaseModel.ts` - Abstract base class for all models
   - `User.ts`, `Coach.ts`, `SessionRequest.ts`, `Earning.ts` - Domain models
   - `index.ts` - Barrel exports
+
+  All models should extend the `BaseModel` class to inherit the audit fields and `toJSON()` method. Override `toJSON()` method to add the structure of the model created, this is important for logging and error handling purposes.
+
 ---
 ### 2.4. **Middleware Layer** (`/src/middleware`)
 Intercept and process requests/responses
@@ -150,7 +156,7 @@ Implement core business logic and rules
   - Implement domain-driven design patterns
   - Handle complex business transactions
 ---
-### 2.6. **Proxy/Client/Services Layer**
+### 2.6. **Proxy/Client/Services Layer** (`/src/services/`)
 Communicate with external services and APIs
   - Abstract API communication details
   - Handle HTTP requests/responses
@@ -158,13 +164,128 @@ Communicate with external services and APIs
   - Implement retry mechanisms
   - Handle service 
 --- 
-### 2.7. **Background/Jobs/Listeners Layer**
+### 2.7. **Background/Jobs/Listeners Layer** (`/src/services/notifications.ts`, `/src/services/realtime.ts`)
 Manage asynchronous operations and real-time updates
   - Handle periodic data refresh
   - Manage real-time event listeners
   - Process background tasks
   - Implement pub/sub patterns
   - Coordinate WebSocket connections
+
+#### Architecture Diagram
+```
+┌────────────────────────────────────────────────┐
+│                  Client App                    │
+├────────────────────────────────────────────────┤
+│  ┌─────────────┐    ┌──────────────────────┐   │
+│  │  Components │    │     Hooks/State      │   │
+│  └─────────────┘    └──────────────────────┘   │
+│         │                      │               │
+│         ▼                      ▼               │
+│  ┌─────────────────────────────────────────┐   │
+│  │             Service Layer               │   │
+│  ├─────────────────────────────────────────┤   │
+│  │  ┌─────────────────┐ ┌────────────────┐ │   │
+│  │  │ Notifications   │ │   RealTime     │ │   │
+│  │  │   Service       │ │    Service     │ │   │
+│  │  ├─────────────────┤ ├────────────────┤ │   │
+│  │  │ Singleton       │ │ Observer       │ │   │
+│  │  │ Facade          │ │ Factory        │ │   │
+│  │  │ Command         │ │ Pattern        │ │   │
+│  │  └─────────────────┘ └────────────────┘ │   │
+│  └─────────────────────────────────────────┘   │
+│         │                      │               │
+│         ▼                      ▼               │
+│  ┌──────────────┐      ┌─────────────────┐     │
+│  │ Expo Native  │      │  Simulated      │     │
+│  │ Notifications│      │   Backend       │     │
+│  │              │      │                 │     │
+│  └──────────────┘      └─────────────────┘     │
+└────────────────────────────────────────────────┘
+```
+
+#### RealTime Simulation with Observer Pattern
+```
+┌─────────────────┐        ┌──────────────────┐
+│ RealTimeService |        │ Client Component │
+│    (Subject)    │        │    (Observer)    │
+├─────────────────┤        ├──────────────────┤
+│ + subscribers   │        │                  │
+│  : Callback[]   │        │ + onEvent()      │
+├─────────────────┤        └──────────────────┤
+│ + subscribe()   │◄──────────────┐           │
+│ + unsubscribe() │               │           │
+│ + notify()      │               │           │
+└─────────────────┘               │           │
+         │                        │           │
+         │ setInterval()          │ implements│
+         ▼                        │           │
+┌─────────────────┐        ┌──────────────────┐
+│ Event Generator |        │   callback()     │
+│                 │        │   function       │
+│ ┌─────────────┐ │        └──────────────────┘
+│ │ every 4s    │ │                  ▲
+│ │ create event│ │                  │
+│ │ ┌─────────┐ │ │                  │
+│ │ │presence │ │ │                  │
+│ │ │session  │ │ │                  │
+│ │ └─────────┘ │ │                  │
+│ └─────────────┘ │                  │
+│                 │                  │
+│ call callback() ├──────────────────┘
+└─────────────────┘
+```
+#### Sequence Diagram - Notification Flow
+```
+┌─────────┐    ┌──────────────┐    ┌─────────────┐    ┌────────────┐
+│ Client  │    │ Notification │    │   Expo      │    │   Router   │
+│         │    │   Service    │    │ Native API  │    │            │
+└─────────┘    └──────────────┘    └─────────────┘    └────────────┘
+    │               │                   │                  │
+    │ init()        │                   │                  │
+    │──────────────►│                   │                  │
+    │               │ setNotificationHandler()             │
+    │               │──────────────────►│                  │
+    │               │ requestPermissions()                 │
+    │               │──────────────────►│                  │
+    │               │ setupAndroidChannel()                │
+    │               │──────────────────►│                  │
+    │               │ addResponseListener()                │
+    │               │──────────────────►│                  │
+    │               │                   │                  │
+    │ notifyAccepted()                  │                  │
+    │──────────────►│                   │                  │
+    │               │ scheduleNotification()               │
+    │               │──────────────────►│                  │
+    │               │                   │                  │
+    │               │     User taps notification           │
+    │               │◄─────────────────────────────────────│
+    │               │ router.push()     │                  │
+    │               │─────────────────────────────────────►│
+```
+#### Sequence Diagram - RealTime Subscription
+```
+┌─────────┐    ┌──────────────┐    ┌───────────────┐
+│ Client  │    │ RealTime     │    │Event Generator│
+│         │    │ Service      │    │ (setInterval) │
+└─────────┘    └──────────────┘    └───────────────┘
+    │               │                   │
+    │ subscribePresence(callback)       │
+    │──────────────►│                   │
+    │               │ start interval    │
+    │               │──────────────────►│
+    │               │                   │
+    │               │     Every 4s      │
+    │               │◄──────────────────│
+    │               │                   │
+    │ callback(event)                   │
+    │◄──────────────│                   │
+    │               │                   │
+    │ unsubscribe() │                   │
+    │──────────────►│                   │
+    │               │ clear interval    │
+    │               │──────────────────►│
+```
 ---
 ### 2.8. **Validators Layer**(`/src/validators`)
 Validate data integrity and business rules
@@ -196,7 +317,7 @@ PUT /api/coaches/{id}
 API Request → API Service → DTO Transformation → Validation → Model → Component
 ```
 
-FrontEnd mappers implement DTO classes to access API data. See `/src/dto/coach.dto.ts` for the implementation of the coach DTO. Follow the example in `/src/mappers/coach.mapper.ts` to use the CoachDTO interface.
+FrontEnd mappers implement DTO classes to access API data. See `/src/dto/dto.ts` for the implementation of the sample DTOs. Follow the example in `/src/mappers/coach.mapper.ts` to use the CoachDTO interface.
 
 #### Example
 
@@ -218,7 +339,7 @@ Manage application-wide state
   ![Store Command Pattern Sequence](./images/diagrams/StoreCommandSequence.svg)
 
 --- 
-### 2.11. **Styles Layer** (`/src/`)
+### 2.11. **Styles Layer** (`/constants/theme.ts`)
 Manage visual presentation and theming
   - Define design system and themes
   - Implement responsive breakpoints
@@ -401,7 +522,7 @@ Manage authentication and authorization
          ▼               ▼               ▼               ▼
 ┌───────────────┬───────────────┬───────────────┬───────────────┐
 │ /src/api/     │ /src/auth/    │ /src/auth/    │ /src/auth/    │
-│ supabase.ts   │ mfa.ts        │ session.ts    │ supabaseAuth.ts│
+│ supabase.ts   │ mfa.ts        │ session.ts    │supabaseAuth.ts│
 └───────────────┴───────────────┴───────────────┴───────────────┘
 ```
 
@@ -470,6 +591,33 @@ supabaseAuth.ts
 
 ![App Security Flow](./images/diagrams/Security%20Flow.svg)
 
+UI Components should call supabaseAuth methods for authenticating users, here we provide the login example from `/app/auth/index.tsx`
+```typescript
+const onSignIn = async () => {
+    try {
+      if (!email.trim() || !password) return Alert.alert('Datos requeridos', 'Email y contraseña');
+
+      await signInWithPassword(email.trim(), password);
+
+      // Si tiene TOTP, ir a challenge antes de entrar
+      try {
+        const factors = await listFactors();
+        if (factors.length > 0) {
+          router.replace('/auth/mfa-challenge' as Href);
+          return;
+        }
+      } catch {
+        /* noop */
+      }
+
+      const s = await getSession();
+      if (!s) return Alert.alert('Atención', 'No se pudo iniciar sesión');
+      await goToDashboardByRole();
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'Credenciales inválidas');
+    }
+  };
+```
 ---
 ### 2.16. **Linter Configuration Layer** (`/src/eslint.config.js`)
 Enforce code quality and consistency
@@ -621,167 +769,3 @@ src
 ├── /navigation # App navigation
 └── /test-utils # Testing utilities
 ```
-
-## 2. How-to Guides
-
-```markdown
-### How to Add a New Service
-
-### Step 1: Create the Service File
-
-Create a new file in `/src/services/`:
-
-```typescript
-// /src/services/notificationService.ts
-
-import { apiService } from './api';
-import { DTOTransformer } from './dto';
-import { logger } from '../utils/logger';
-import { BusinessError } from '../utils/errors';
-
-export interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'INFO' | 'WARNING' | 'ERROR';
-  read: boolean;
-  createdAt: Date;
-}
-
-class NotificationService {
-  async getUserNotifications(userId: string): Promise<Notification[]> {
-    try {
-      logger.info('Fetching user notifications', { userId });
-      
-      const response = await apiService.get(`/users/${userId}/notifications`);
-      
-      // Transform API response to models
-      return response.map((notification: any) => ({
-        id: notification.id,
-        title: notification.title,
-        message: notification.message,
-        type: notification.type,
-        read: notification.is_read,
-        createdAt: new Date(notification.created_at),
-      }));
-    } catch (error) {
-      logger.error('Failed to fetch notifications', error as Error, { userId });
-      throw new BusinessError(
-        'NOTIFICATIONS_FETCH_FAILED',
-        'Failed to load notifications'
-      );
-    }
-  }
-
-  async markAsRead(notificationId: string): Promise<void> {
-    try {
-      await apiService.patch(`/notifications/${notificationId}`, {
-        read: true,
-      });
-      logger.debug('Notification marked as read', { notificationId });
-    } catch (error) {
-      logger.error('Failed to mark notification as read', error as Error, { notificationId });
-      throw new BusinessError(
-        'NOTIFICATION_UPDATE_FAILED',
-        'Failed to update notification'
-      );
-    }
-  }
-}
-
-export const notificationService = new NotificationService();
-```
-
----
-
-# UX Testing Documentation
-
-## Prototype & Usability Testing
-
-### AI Prototype
-- **Tool**: Lovable AI
-- **Purpose**: Generate interactive prototype for user testing
-- **Live Prototype**: [\[PROTOTYPE LINK\]](https://vocal-guru.lovable.app/)
-
-### Usability Studies
-- **Platform**: Maze
-- **Studies**: 2 live studies with 3-5 participants each
-
-#### Study 1: "Search a fitness coach and open profile"
-- **Tests**: User's ability to find and view coach profiles
-- **Metrics**: Completion rate, time on task, click paths
-- **Results**: `/docs/ux/maze-study-results/study-1-metrics.pdf`
-
-#### Study 2: "Accept the suggested coach (Start 20-min request)"
-- **Tests**: User's ability to book a coaching session  
-- **Metrics**: Completion rate, difficulty rating, user feedback
-- **Results**: `/docs/ux/maze-study-results/study-2-heatmaps.png`
-
-### Evidence & Reports
-- **UX Test Report**: `/docs/ux/ux-test-report.md`
-- **Participant Feedback**: `/docs/ux/maze-study-results/participant-feedback.md`
-- **Improvements Backlog**: `/docs/ux/improvements-backlog.md`
-- **Prototype Links**: `/docs/ux/prototype-links.txt`
-
-# Referencia para N-Layer Architecture
-
-### 1. Presentation Layer (UI)
-**Location:** `/src/components`, `/src/screens`, `/src/navigation`
-- Displays data and collects user input.
-- No business logic; delegates to state or services.
-- Example: `CoachListScreen.tsx` calls `useCoachesQuery()` and renders list.
-
----
-
-### 2. State Management Layer
-**Location:** `/src/store`, `/src/hooks`, `/src/query`
-- Manages global state (Redux Toolkit) and remote data (TanStack Query).
-- Provides custom hooks for UI consumption.
-- Example: `authSlice.ts`, `useCoachesQuery()`.
-
----
-
-### 3. Domain Layer (Business Models)
-**Location:** `/src/models`
-- Pure business entities and rules: `User`, `Coach`, `Session`, `Role`.
-- No networking, no middleware.
-- Example: `Coach` class with domain logic (e.g., eligibility checks).
-
----
-
-### 4. Validation & Transformation Layer
-**Location:** `/src/validators`, `/src/services/dto.ts`
-- DTOs: transform API responses to domain models and vice versa.
-- Validators (Zod schemas) ensure correct data before entering domain layer.
-- Example: `CoachSchema` validates incoming data; `dto.ts` maps `{ first_name } → { firstName }`.
-
----
-
-### 5. Service / Application Layer
-**Location:** `/src/services`
-- Orchestrates domain models and infrastructure (API/networking) for the UI.
-- Contains business workflows.
-- Example:
-  - `coachService.ts`: calls HTTP, applies DTOs, returns domain objects.
-  - Can use **service-specific middleware** like `auth.guard.ts` to enforce rules at service boundaries.
-
----
-
-### 6. Infrastructure Layer
-**Location:** `/src/utils`, `/src/config`, `/src/middleware`, `/src/lib`
-- Technical support (purely non-business): HTTP wrappers, logging, storage, error handling.
-- Middleware like `http.interceptor.ts` lives here because it’s **technical, not business**.
-- Example:
-  - `httpJson.ts`: fetch wrapper with timeout and JSON parsing.
-  - `logger.ts`: Strategy pattern logging.
-  - `error.middleware.ts`: maps errors to messages.
-
----
-
-### 7. Cross-Cutting Concerns
-- **Logging:** via `logger.ts`
-- **Error Handling:** via `error.middleware.ts`
-- **Security:** route guards (`auth.guard.ts` in services layer), token storage.
-- **Configuration:** environment variables and constants in `/src/config`.
-
----
