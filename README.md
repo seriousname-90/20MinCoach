@@ -471,22 +471,108 @@ supabaseAuth.ts
 ![App Security Flow](./images/diagrams/Security%20Flow.svg)
 
 ---
-### 2.16. **Linter Configuration Layer** (`/src/eslint.config.js`)
-Enforce code quality and consistency
-  - Define coding standards
-  - Enforce code style rules
-  - Prevent common errors
-  - Maintain code quality metrics
-  - Automate code review processes
----
-### 2.17. **Build and Deployment Pipeline Layer** (`EAS Build`)
-Manage application build and deployment
-  - Handle environment-specific builds
-  - Optimize production bundles
-  - Manage deployment configurations
-  - Run automated tests
-  - Ensure deployment reliability
+### 2.16. Linter Configuration Layer (eslint.config.js) 
 
+Purpose: Enforce code quality & consistency across TypeScript / React-Native / Expo.
+
+Files
+
+Linter rules → eslint.config.js (flat config)
+
+Formatter → .prettierrc
+
+Key rules (highlights)
+
+// eslint.config.js (excerpt)
+rules: {
+  // Custom rule: ban console.log in app code
+  'no-console': ['error', { allow: ['warn', 'error'] }],
+
+  // Hygiene
+  '@typescript-eslint/no-unused-vars': [
+    'error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+  ],
+
+  // Consistent import ordering & aliases
+  'import/order': ['error', { /* internal aliases, newlines-between, alphabetize */ }],
+},
+overrides: [
+  // Allow logs in tests only
+  { files: ['**/*.test.{ts,tsx}'], rules: { 'no-console': 'off' } }
+]
+
+
+Code style
+
+Prettier → single quotes, trailing commas, print width 100, semicolons (.prettierrc).
+
+How to run
+
+pnpm lint         # fails CI on any warning (--max-warnings=0)
+pnpm lint:fix     # auto-fix where possible
+pnpm format       # run Prettier over the repo
+
+ 
+Rationale
+
+Flat ESLint + TS + React + import-order + Prettier → consistent imports & style.
+
+Aliased import resolution matches tsconfig paths.
+
+Custom rule bans console.log in app code (tests exempted).
+
+# 2.17. Build & Deployment Pipeline (EAS Build) 
+
+Files
+
+Build profiles → eas.json
+
+App settings → app.json
+
+CI pipeline → .github/workflows/lint-and-test.yml
+
+Env template → .env.example
+
+Profiles (summary)
+
+Profile	Distribution	APP_ENV	Use case
+development	internal	development	Dev client (replaces Expo Go; native APIs)
+preview	internal	staging	QA / stakeholder previews
+production	store	production	Store-ready builds
+
+Common commands
+
+# Auth once
+eas login
+
+# Build
+eas build -p android --profile development
+eas build -p ios     --profile development
+eas build -p android --profile preview
+eas build -p ios     --profile preview
+eas build -p android --profile production
+eas build -p ios     --profile production
+
+# Submit (signed)
+eas submit -p android --profile production
+eas submit -p ios     --profile production
+
+
+CI (overview)
+
+On each PR, CI runs: pnpm i --frozen-lockfile, pnpm lint, pnpm test:ci.
+
+See: .github/workflows/lint-and-test.yml.
+
+Why this meets the requirement
+
+Env-specific builds via eas.json + APP_ENV.
+
+Smaller/faster prod bundles (Hermes/Expo defaults; production profile).
+
+Deterministic installs (--frozen-lockfile) + tests & lint enforced in CI.
+
+Clear developer instructions (run, build, submit) in README; full configs live in their files.
 ---
 
 
