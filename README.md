@@ -67,68 +67,340 @@ Automated tests will catch regressions early in CI/CD.
 
 ## 2. N-Layer Architecture Design
 
+### 1. **Presentation Layer** `/src/components`, `/src/screens`, `/src/navigation`
+Render UI elements and handle user interactions.
+  - Present data to users
+  - Capture user input
+  - Manage component state and lifecycle
+  - Implement accessibility standards
+  - Ensure responsive design compliance
+  - Compose reusable UI components
+---
+### 2. **Controller Layer** (`/hooks`)
+Mediate between UI and business logic
+  - Handle user input validation
+  - Coordinate business service calls
+  - Manage side effects
+  - Transform data for presentation
+  - Provide hook-based connectors to components
+  - Implement dependency injection for services
+---
+### 3. **Model Layer** (`/src/models`)
+Define data structures and validation rules
+  - Define entity interfaces and classes
+  - Implement data validation logic
+  - Maintain data integrity rules
+  - Provide type definitions
+  - Handle data serialization/deserialization
+
+  **Key Files**:
+  - `BaseModel.ts` - Abstract base class for all models
+  - `User.ts`, `Coach.ts`, `SessionRequest.ts`, `Earning.ts` - Domain models
+  - `index.ts` - Barrel exports
+---
+### 4. **Middleware Layer** (`/src/middleware`)
+Intercept and process requests/responses
+  - Handle HTTP request/response interception
+  - Manage authentication tokens
+  - Implement cross-cutting concerns
+  - Process errors before they reach components
+  - Validate permissions for routes
+  - Error transformation for UI
+  - Logging integration
+
+  **Key Files**:
+  - `auth.guard.tsx` - Authentication middleware
+  - `http.interceptor.ts` - HTTP interceptor middleware
+
+  #### Auth Guard
+
+  Use `RequireAuth` and `RequireRole` functions from `/src/middleware/auth.guard.tsx` in the UI components to add verifications for protected routes. See `/app/dashboard/basic.tsx` for an example implementation of this function. To add different role guards you will need to modify the constant `can`, and add the different actions and the roles approved for said actions and the method `RoleGuard` to add the new actions and the validations (both of these are found in `/src/middleware/auth.guard.tsx`).
+
+  ##### Dependency Graph
+```
+supabase.auth
+    ↑
+http.interceptor (withAuth, setOnUnauthorized)
+    ↑
+auth.guard (can, RequireAuth, RequireRole, RoleGate)
+    ↑
+App Components
+    ├── Protected Routes (use RequireAuth)
+    ├── Role-based Routes (use RequireRole) 
+    └── Conditional UI (use RoleGate)
+```
+  
+  ##### Route Protection Diagram
+
+  The general logic for visiting protected routes is presented in the following diagram:
+
+  ![Route Protection](./images/diagrams/Route%20Protection.svg)
+
+  #### HTTP Interceptor
+
+  Use the `withAuth` function from `/src/middleware/http.interceptor.ts` to add authorization headers to the API calls. This method is already implemented in `/src/services/http.ts`, add this method to new services that require API authentication.
+  
+
+---
+### 5. **Business Layer**
+Implement core business logic and rules
+  - Enforce business rules and validation
+  - Coordinate domain operations
+  - Manage business workflows
+  - Implement domain-driven design patterns
+  - Handle complex business transactions
+---
+### 6. **Proxy/Client/Services Layer**
+Communicate with external services and APIs
+  - Abstract API communication details
+  - Handle HTTP requests/responses
+  - Manage service endpoints
+  - Implement retry mechanisms
+  - Handle service 
+--- 
+### 7. **Background/Jobs/Listeners Layer**
+Manage asynchronous operations and real-time updates
+  - Handle periodic data refresh
+  - Manage real-time event listeners
+  - Process background tasks
+  - Implement pub/sub patterns
+  - Coordinate WebSocket connections
+---
+### 8. **Validators Layer**(`/src/validators`)
+Validate data integrity and business rules
+  - Validate user input data
+  - Enforce data format rules
+  - Provide validation error messages
+  - Implement cross-field validation
+  - Reuse validation logic across layers
+
+  Validators must be used whenever API data is received, it uses the DTOs and other validations to make sure the data was received as expected. See `/src/validators/coach.validator.ts` for the implementation of the validators. Follow the example in `/src/mappers/coach.mapper.ts` to use the validateCoachDTO function.
+
+---
+### 9. **DTOs Layer** (`/src/dto`)
+Transform data between external and internal formats
+  - Define data transfer object interfaces
+  - Transform API responses to internal models
+  - Handle data normalization
+  - Manage version compatibility
+  - Isolate external API changes
+
+  The DTOs should be used when sending/receiving data from backend APIs. This is important to maintain frontend models with changing APIs.
+```
+// API calls
+GET /api/coaches
+POST /api/coaches
+PUT /api/coaches/{id}
+
+// Data mapping between layers
+API Request → API Service → DTO Transformation → Validation → Model → Component
+```
+
+FrontEnd mappers implement DTO classes to access API data. See `/src/dto/coach.dto.ts` for the implementation of the coach DTO. Follow the example in `/src/mappers/coach.mapper.ts` to use the CoachDTO interface.
+
+#### Example
+
+---
+### 10. **State Management Layer** (`/src/store`)
+Manage application-wide state
+  - Store and retrieve global state
+  - Handle state persistence
+  - Manage state transitions
+  - Coordinate component state sharing
+  - Implement state 
+
+  Redux manages single source of truth for the app state
+
+  ![State Management](./images/diagrams/StateManagement.svg)
+
+  ![Store State Pattern](./images/diagrams/StoreStatePattern.svg)
+
+  ![Store Command Pattern Sequence](./images/diagrams/StoreCommandSequence.svg)
+
+--- 
+### 11. **Styles Layer** (`/src/`)
+Manage visual presentation and theming
+  - Define design system and themes
+  - Implement responsive breakpoints
+  - Manage CSS-in-JS or styled components
+  - Handle dark/light mode switching
+  - Ensure visual consistency
+---
+### 12. **Utilities Layer** (`/src/utils`)
+Provide reusable helper functions and services
+  - Implement common utility functions
+  - Provide date/number formatting
+  - Handle common transformations
+  - Implement singleton services
+  - Share reusable logic across application
+---
+### 13. **Exception Handling Layer** (`/src/utils/error`)
+Manage error handling and user feedback
+  - Catch and process errors
+  - Transform technical errors to user-friendly messages
+  - Implement error recovery strategies
+  - Log errors appropriately
+  - Provide consistent error handling patterns
+
+  ![Error Handling UML](./images/diagrams/ErrorHandling.png)
+
+```
+  Type System Hierarchy
+BaseError (abstract)
+├── ApiError → { statusCode, url }
+├── ValidationError → { fieldErrors }
+├── NetworkError → { }
+└── BusinessError → { }
+
+UIError (interface)
+├── code: string
+├── message: string  
+├── originalError?: string
+├── fieldErrors?: object
+└── retryable: boolean
+
+ErrorFactory (static)
+└── fromUnknown(error): BaseError
+```
+
+![Error Handling Factory Sequence](./images/diagrams/ErrorFactorySequence.svg)
+
+#### Strategies
+
+##### ApiError Strategy
+This should add a status code referring to the status of the API call and the url of the API being used. Override `toUI()` method to add the different user friendly messages for the known error codes. Retryable is based on the status code received.
+##### ValidationError Strategy
+This should add the object where the field errors presented. Override `toUI()` method to handle the error message, highlight UI Component that presented the first error, etc. Should not be retryable.
+##### NetworkError Strategy
+Override `toUI()` method to add network message, add retry button. Should always be retryable.
+##### BusinessError Strategy
+Override `toUI()` method to add messages for known business errors, add default message for unkown errors. Can be retryable.
+
+Client code should be calling `error.toUI()` method, depending on the strategy the different error handling variations will act in order to show user friendly messages, set retryable, etc.
+
+![Error Handling Strategies Example](./images/diagrams/ErrorStrategies%20Example.png)
+
+#### Application Error Flow
+Application Error Flow
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Client Layer   │    │  Error Factory   │    │    UI Layer     │
+├─────────────────┤    ├──────────────────┤    ├─────────────────┤
+│ HTTP Request    │───>│ fromUnknown()    │───>│ error.toUI()    │
+│ fails with      │    │ converts to      │    │ transforms to   │
+│ status 500      │    │ typed error      │    │ user-friendly   │
+│                 │    │                  │    │ message         │
+│ Validation      │───>│                  │───>│                 │
+│ fails           │    │                  │    │ shows field     │
+│                 │    │                  │    │ errors          │
+│ Network         │───>│                  │───>│ shows retry     │
+│ timeout         │    │                  │    │ button          │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+---
+### 14. **Logging Layer** (`/src/utils/logger`)
+Handle application logging and monitoring
+  - Record application events and errors
+  - Implement structured logging
+  - Support multiple log providers
+  - Manage log levels and filtering
+  - Provide audit trails
+
+![Logger UML](./images/diagrams/Logger.png)
+
+```
+src/utils/logger.ts
+├── Types & Interfaces
+│   ├── LogLevel = 'info' | 'warn' | 'error'
+│   └── LogProvider (interface)
+│       └── log(level, message, ctx?)
+│
+├── Concrete Strategies
+│   ├── ConsoleProvider (implements LogProvider)
+│   │   └── log() → console methods
+│   └── MemoryProvider (implements LogProvider)
+│       ├── records: Array
+│       ├── log() → store in memory
+│       └── clear() → clear records
+│
+└── Context
+    └── Logger
+        ├── provider: LogProvider
+        ├── constructor(provider?)
+        ├── setProvider(provider)
+        ├── info(message, ctx?)
+        ├── warn(message, ctx?)
+        └── error(message, ctx?)
+```
+
+![Logger Strategy Sequence](./images/diagrams/LoggerStrategySequence.svg)
+
+#### Strategies
+
+##### ConsoleProvider Strategy
+Override `log()` method to add the logging for the console and manage different loggin levels.
+##### MemoryProvider Strategy
+Use records Array to store records on memory. Override `log()` method to push logs into the array.
+##### LogProvider Strategy
+Override `log()` method to add the logging for base loggin.
+##### FutureProvider Strategy
+Add different attributes needed for the new provider logic. Override `log()` method to add the logging logic for the provider implemented.
+
+Client code should be calling the logger and use the different methods for the log type. Logger will call the selected strategy.
+
+![Logger Strategies Example](./images/diagrams/LoggerStrategies%20Example.svg)
+
+#### Application Logging Flow
+
+```
+┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│  Application     │    │   Logger         │    │  LogProvider     │    │  Destination     │
+│    Code          │    │   Facade         │    │  Interface       │    │                  │
+├──────────────────┤    ├──────────────────┤    ├──────────────────┤    ├──────────────────┤
+│ Service calls    │───>│ info()           │───>│ log()            │───>│ Console          │
+│ logger.info()    │    │                  │    │                  │    │                  │
+│                  │    │                  │    │                  │    │ writes to        │
+│ API layer logs   │───>│ warn()           │───>│                  │───>│ browser/devtools │
+│ errors           │    │                  │    │                  │    │                  │
+│                  │    │                  │    │                  │    │ Memory           │
+│ Test code uses   │───>│ error()          │───>│                  │───>│                  │
+│ memory provider  │    │                  │    │                  │    │ stores in array  │
+│                  │    │ setProvider()    │    │                  │    │                  │
+│ Production swaps │───>│ swaps strategy   │───>│                  │───>│ File             │
+│ to file logging  │    │ at runtime       │    │                  │    │                  │
+│                  │    │                  │    │                  │    │ writes to disk   │
+└──────────────────┘    └──────────────────┘    └──────────────────┘    └──────────────────┘
+```
+
+
+
+---
+### 15. **Security Layer**
+Manage authentication and authorization
+  - Handle user authentication
+  - Manage authorization rules
+  - Secure data storage
+  - Implement security best practices
+  - Protect against common vulnerabilities
+---
+### 16. **Linter Configuration Layer** (`/src/eslint.config.js`)
+Enforce code quality and consistency
+  - Define coding standards
+  - Enforce code style rules
+  - Prevent common errors
+  - Maintain code quality metrics
+  - Automate code review processes
+---
+### 17. **Build and Deployment Pipeline Layer** (`EAS Build`)
+Manage application build and deployment
+  - Handle environment-specific builds
+  - Optimize production bundles
+  - Manage deployment configurations
+  - Run automated tests
+  - Ensure deployment reliability
+
 ---
 
-### 1. Presentation Layer (UI)
-**Location:** `/src/components`, `/src/screens`, `/src/navigation`
-- Displays data and collects user input.
-- No business logic; delegates to state or services.
-- Example: `CoachListScreen.tsx` calls `useCoachesQuery()` and renders list.
-
----
-
-### 2. State Management Layer
-**Location:** `/src/store`, `/src/hooks`, `/src/query`
-- Manages global state (Redux Toolkit) and remote data (TanStack Query).
-- Provides custom hooks for UI consumption.
-- Example: `authSlice.ts`, `useCoachesQuery()`.
-
----
-
-### 3. Domain Layer (Business Models)
-**Location:** `/src/models`
-- Pure business entities and rules: `User`, `Coach`, `Session`, `Role`.
-- No networking, no middleware.
-- Example: `Coach` class with domain logic (e.g., eligibility checks).
-
----
-
-### 4. Validation & Transformation Layer
-**Location:** `/src/validators`, `/src/services/dto.ts`
-- DTOs: transform API responses to domain models and vice versa.
-- Validators (Zod schemas) ensure correct data before entering domain layer.
-- Example: `CoachSchema` validates incoming data; `dto.ts` maps `{ first_name } → { firstName }`.
-
----
-
-### 5. Service / Application Layer
-**Location:** `/src/services`
-- Orchestrates domain models and infrastructure (API/networking) for the UI.
-- Contains business workflows.
-- Example:
-  - `coachService.ts`: calls HTTP, applies DTOs, returns domain objects.
-  - Can use **service-specific middleware** like `auth.guard.ts` to enforce rules at service boundaries.
-
----
-
-### 6. Infrastructure Layer
-**Location:** `/src/utils`, `/src/config`, `/src/middleware`, `/src/lib`
-- Technical support (purely non-business): HTTP wrappers, logging, storage, error handling.
-- Middleware like `http.interceptor.ts` lives here because it’s **technical, not business**.
-- Example:
-  - `httpJson.ts`: fetch wrapper with timeout and JSON parsing.
-  - `logger.ts`: Strategy pattern logging.
-  - `error.middleware.ts`: maps errors to messages.
-
----
-
-### 7. Cross-Cutting Concerns
-- **Logging:** via `logger.ts`
-- **Error Handling:** via `error.middleware.ts`
-- **Security:** route guards (`auth.guard.ts` in services layer), token storage.
-- **Configuration:** environment variables and constants in `/src/config`.
-
----
 
 ## 3. Visual Components Strategy
 
@@ -331,275 +603,63 @@ export const notificationService = new NotificationService();
 # Referencia para N-Layer Architecture
 
 
-### 1. **Presentation Layer**
-Render UI elements and handle user interactions.
-  - Present data to users
-  - Capture user input
-  - Manage component state and lifecycle
-  - Implement accessibility standards
-  - Ensure responsive design compliance
-  - Compose reusable UI components
----
-### 2. **Controller Layer** (`/hooks`)
-Mediate between UI and business logic
-  - Handle user input validation
-  - Coordinate business service calls
-  - Manage side effects
-  - Transform data for presentation
-  - Provide hook-based connectors to components
-  - Implement dependency injection for services
----
-### 3. **Model Layer** (`/src/models`)
-Define data structures and validation rules
-  - Define entity interfaces and classes
-  - Implement data validation logic
-  - Maintain data integrity rules
-  - Provide type definitions
-  - Handle data serialization/deserialization
-
-  **Key Files**:
-  - `BaseModel.ts` - Abstract base class for all models
-  - `User.ts`, `Coach.ts`, `SessionRequest.ts`, `Earning.ts` - Domain models
-  - `index.ts` - Barrel exports
----
-### 4. **Middleware Layer** (`/src/middleware`)
-Intercept and process requests/responses
-  - Handle HTTP request/response interception
-  - Manage authentication tokens
-  - Implement cross-cutting concerns
-  - Process errors before they reach components
-  - Validate permissions for routes
-  - Error transformation for UI
-  - Logging integration
-
-  **Key Files**:
-  - `error.middleware.ts` - Error handling middleware
----
-### 5. **Business Layer**
-Implement core business logic and rules
-  - Enforce business rules and validation
-  - Coordinate domain operations
-  - Manage business workflows
-  - Implement domain-driven design patterns
-  - Handle complex business transactions
----
-### 6. **Proxy/Client/Services Layer**
-Communicate with external services and APIs
-  - Abstract API communication details
-  - Handle HTTP requests/responses
-  - Manage service endpoints
-  - Implement retry mechanisms
-  - Handle service 
---- 
-### 7. **Background/Jobs/Listeners Layer**
-Manage asynchronous operations and real-time updates
-  - Handle periodic data refresh
-  - Manage real-time event listeners
-  - Process background tasks
-  - Implement pub/sub patterns
-  - Coordinate WebSocket connections
----
-### 8. **Validators Layer**
-Validate data integrity and business rules
-  - Validate user input data
-  - Enforce data format rules
-  - Provide validation error messages
-  - Implement cross-field validation
-  - Reuse validation logic across layers
----
-### 9. **DTOs Layer**
-Transform data between external and internal formats
-  - Define data transfer object interfaces
-  - Transform API responses to internal models
-  - Handle data normalization
-  - Manage version compatibility
-  - Isolate external API changes
----
-### 10. **State Management Layer** (`/src/store`)
-Manage application-wide state
-  - Store and retrieve global state
-  - Handle state persistence
-  - Manage state transitions
-  - Coordinate component state sharing
-  - Implement state 
---- 
-### 11. **Styles Layer** (`/src/models`)
-Manage visual presentation and theming
-  - Define design system and themes
-  - Implement responsive breakpoints
-  - Manage CSS-in-JS or styled components
-  - Handle dark/light mode switching
-  - Ensure visual consistency
----
-### 12. **Utilities Layer** (`/src/utils`)
-Provide reusable helper functions and services
-  - Implement common utility functions
-  - Provide date/number formatting
-  - Handle common transformations
-  - Implement singleton services
-  - Share reusable logic across application
----
-### 13. **Exception Handling Layer** 
-Manage error handling and user feedback
-  - Catch and process errors
-  - Transform technical errors to user-friendly messages
-  - Implement error recovery strategies
-  - Log errors appropriately
-  - Provide consistent error handling patterns
-
-  ![Error Handling UML](./images/diagrams/ErrorHandling.png)
-
-```
-  Type System Hierarchy
-BaseError (abstract)
-├── ApiError → { statusCode, url }
-├── ValidationError → { fieldErrors }
-├── NetworkError → { }
-└── BusinessError → { }
-
-UIError (interface)
-├── code: string
-├── message: string  
-├── originalError?: string
-├── fieldErrors?: object
-└── retryable: boolean
-
-ErrorFactory (static)
-└── fromUnknown(error): BaseError
-```
-
-![Error Handling Factory Sequence](./images/diagrams/ErrorFactorySequence.svg)
-
-#### Strategies
-
-##### ApiError Strategy
-This should add a status code referring to the status of the API call and the url of the API being used. Override `toUI()` method to add the different user friendly messages for the known error codes. Retryable is based on the status code received.
-##### ValidationError Strategy
-This should add the object where the field errors presented. Override `toUI()` method to handle the error message, highlight UI Component that presented the first error, etc. Should not be retryable.
-##### NetworkError Strategy
-Override `toUI()` method to add network message, add retry button. Should always be retryable.
-##### BusinessError Strategy
-Override `toUI()` method to add messages for known business errors, add default message for unkown errors. Can be retryable.
-
-Client code should be calling `error.toUI()` method, depending on the strategy the different error handling variations will act in order to show user friendly messages, set retryable, etc.
-
-![Error Handling Strategies Example](./images/diagrams/ErrorStrategies%20Example.png)
-
-#### Application Error Flow
-Application Error Flow
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  Client Layer   │    │  Error Factory   │    │    UI Layer     │
-├─────────────────┤    ├──────────────────┤    ├─────────────────┤
-│ HTTP Request    │───>│ fromUnknown()    │───>│ error.toUI()    │
-│ fails with      │    │ converts to      │    │ transforms to   │
-│ status 500      │    │ typed error      │    │ user-friendly   │
-│                 │    │                  │    │ message         │
-│ Validation      │───>│                  │───>│                 │
-│ fails           │    │                  │    │ shows field     │
-│                 │    │                  │    │ errors          │
-│ Network         │───>│                  │───>│ shows retry     │
-│ timeout         │    │                  │    │ button          │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
----
-### 14. **Logging Layer** (`/src/utils/logger`)
-Handle application logging and monitoring
-  - Record application events and errors
-  - Implement structured logging
-  - Support multiple log providers
-  - Manage log levels and filtering
-  - Provide audit trails
-
-![Logger UML](./images/diagrams/Logger.png)
-
-```
-src/utils/logger.ts
-├── Types & Interfaces
-│   ├── LogLevel = 'info' | 'warn' | 'error'
-│   └── LogProvider (interface)
-│       └── log(level, message, ctx?)
-│
-├── Concrete Strategies
-│   ├── ConsoleProvider (implements LogProvider)
-│   │   └── log() → console methods
-│   └── MemoryProvider (implements LogProvider)
-│       ├── records: Array
-│       ├── log() → store in memory
-│       └── clear() → clear records
-│
-└── Context
-    └── Logger
-        ├── provider: LogProvider
-        ├── constructor(provider?)
-        ├── setProvider(provider)
-        ├── info(message, ctx?)
-        ├── warn(message, ctx?)
-        └── error(message, ctx?)
-```
-
-![Logger Strategy Sequence](./images/diagrams/LoggerStrategySequence.svg)
-
-#### Strategies
-
-##### ConsoleProvider Strategy
-Override `log()` method to add the logging for the console and manage different loggin levels.
-##### MemoryProvider Strategy
-Use records Array to store records on memory. Override `log()` method to push logs into the array.
-##### LogProvider Strategy
-Override `log()` method to add the logging for base loggin.
-##### FutureProvider Strategy
-Add different attributes needed for the new provider logic. Override `log()` method to add the logging logic for the provider implemented.
-
-Client code should be calling the logger and use the different methods for the log type. Logger will call the selected strategy.
-
-![Logger Strategies Example](./images/diagrams/LoggerStrategies%20Example.svg)
-
-#### Application Error Flow
-Application Error Flow
-```
-┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│  Application     │    │   Logger         │    │  LogProvider     │    │  Destination     │
-│    Code          │    │   Facade         │    │  Interface       │    │                  │
-├──────────────────┤    ├──────────────────┤    ├──────────────────┤    ├──────────────────┤
-│ Service calls    │───>│ info()           │───>│ log()            │───>│ Console          │
-│ logger.info()    │    │                  │    │                  │    │                  │
-│                  │    │                  │    │                  │    │ writes to        │
-│ API layer logs   │───>│ warn()           │───>│                  │───>│ browser/devtools │
-│ errors           │    │                  │    │                  │    │                  │
-│                  │    │                  │    │                  │    │ Memory           │
-│ Test code uses   │───>│ error()          │───>│                  │───>│                  │
-│ memory provider  │    │                  │    │                  │    │ stores in array  │
-│                  │    │ setProvider()    │    │                  │    │                  │
-│ Production swaps │───>│ swaps strategy   │───>│                  │───>│ File             │
-│ to file logging  │    │ at runtime       │    │                  │    │                  │
-│                  │    │                  │    │                  │    │ writes to disk   │
-└──────────────────┘    └──────────────────┘    └──────────────────┘    └──────────────────┘
-```
-
-
+### 1. Presentation Layer (UI)
+**Location:** `/src/components`, `/src/screens`, `/src/navigation`
+- Displays data and collects user input.
+- No business logic; delegates to state or services.
+- Example: `CoachListScreen.tsx` calls `useCoachesQuery()` and renders list.
 
 ---
-### 15. **Security Layer**
-Manage authentication and authorization
-  - Handle user authentication
-  - Manage authorization rules
-  - Secure data storage
-  - Implement security best practices
-  - Protect against common vulnerabilities
+
+### 2. State Management Layer
+**Location:** `/src/store`, `/src/hooks`, `/src/query`
+- Manages global state (Redux Toolkit) and remote data (TanStack Query).
+- Provides custom hooks for UI consumption.
+- Example: `authSlice.ts`, `useCoachesQuery()`.
+
 ---
-### 16. **Linter Configuration Layer** (`/src/eslint.config.js`)
-Enforce code quality and consistency
-  - Define coding standards
-  - Enforce code style rules
-  - Prevent common errors
-  - Maintain code quality metrics
-  - Automate code review processes
+
+### 3. Domain Layer (Business Models)
+**Location:** `/src/models`
+- Pure business entities and rules: `User`, `Coach`, `Session`, `Role`.
+- No networking, no middleware.
+- Example: `Coach` class with domain logic (e.g., eligibility checks).
+
 ---
-### 17. **Build and Deployment Pipeline Layer** (`EAS Build`)
-Manage application build and deployment
-  - Handle environment-specific builds
-  - Optimize production bundles
-  - Manage deployment configurations
-  - Run automated tests
-  - Ensure deployment reliability
+
+### 4. Validation & Transformation Layer
+**Location:** `/src/validators`, `/src/services/dto.ts`
+- DTOs: transform API responses to domain models and vice versa.
+- Validators (Zod schemas) ensure correct data before entering domain layer.
+- Example: `CoachSchema` validates incoming data; `dto.ts` maps `{ first_name } → { firstName }`.
+
+---
+
+### 5. Service / Application Layer
+**Location:** `/src/services`
+- Orchestrates domain models and infrastructure (API/networking) for the UI.
+- Contains business workflows.
+- Example:
+  - `coachService.ts`: calls HTTP, applies DTOs, returns domain objects.
+  - Can use **service-specific middleware** like `auth.guard.ts` to enforce rules at service boundaries.
+
+---
+
+### 6. Infrastructure Layer
+**Location:** `/src/utils`, `/src/config`, `/src/middleware`, `/src/lib`
+- Technical support (purely non-business): HTTP wrappers, logging, storage, error handling.
+- Middleware like `http.interceptor.ts` lives here because it’s **technical, not business**.
+- Example:
+  - `httpJson.ts`: fetch wrapper with timeout and JSON parsing.
+  - `logger.ts`: Strategy pattern logging.
+  - `error.middleware.ts`: maps errors to messages.
+
+---
+
+### 7. Cross-Cutting Concerns
+- **Logging:** via `logger.ts`
+- **Error Handling:** via `error.middleware.ts`
+- **Security:** route guards (`auth.guard.ts` in services layer), token storage.
+- **Configuration:** environment variables and constants in `/src/config`.
+
+---
